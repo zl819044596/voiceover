@@ -7,7 +7,7 @@ import { estimateChars } from "@/lib/utils";
 
 export default function VoiceoverPage() {
   const [text, setText] = useState("");
-  const [voice, setVoice] = useState("longjiqi");
+  const [voice, setVoice] = useState("en-US-EmmaMultilingualNeural");
   const [speed, setSpeed] = useState(1.0);
   const [volume, setVolume] = useState(80);
   const [loading, setLoading] = useState(false);
@@ -27,17 +27,21 @@ export default function VoiceoverPage() {
 
     try {
       const textToUse = polishedText || text;
+      const selectedVoice = voices.find((v) => v.id === voice);
+      const isEdge = selectedVoice?.source === "edge";
 
-      const res = await fetch("/api/tts/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: [textToUse],
-          voice,
-          speed,
-          volume,
-        }),
-      });
+      const res = await fetch(
+        isEdge ? "/api/tts/edge" : "/api/tts/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            isEdge
+              ? { text: textToUse, voice, rate: (speed - 1) * 100, volume }
+              : { text: [textToUse], voice, speed, volume }
+          ),
+        }
+      );
 
       if (!res.ok) {
         const err = await res.json();
@@ -100,11 +104,28 @@ export default function VoiceoverPage() {
               onChange={(e) => setVoice(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             >
-              {voices.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label} — {v.style} ({v.gender})
-                </option>
-              ))}
+              {(() => {
+                const edgeVoices = voices.filter((v) => v.source === "edge");
+                const fmVoices = voices.filter((v) => v.source === "fastmodels");
+                return (
+                  <>
+                    <optgroup label="🎙️ Edge TTS — Natural Neural Voices (Free)">
+                      {edgeVoices.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.label} — {v.style} ({v.gender})
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="📻 Fastmodels AI Voices">
+                      {fmVoices.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.label} — {v.style} ({v.gender})
+                        </option>
+                      ))}
+                    </optgroup>
+                  </>
+                );
+              })()}
             </select>
           </div>
 
