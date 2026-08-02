@@ -2,14 +2,17 @@
 
 import { useState, useRef } from "react";
 import { Mic, Download, Loader2, Sparkles, Languages } from "lucide-react";
-import { voices, freeQuota } from "@/config/site";
-import { estimateChars } from "@/lib/utils";
+import { voices, emotions, freeQuota } from "@/config/site";
+import { estimateChars, buildSsml } from "@/lib/utils";
+import type { Emotion } from "@/config/site";
 
 export default function VoiceoverPage() {
   const [text, setText] = useState("");
   const [voice, setVoice] = useState("longjiqi");
   const [speed, setSpeed] = useState(1.0);
+  const [pitch, setPitch] = useState(1.0);
   const [volume, setVolume] = useState(80);
+  const [emotion, setEmotion] = useState<Emotion["id"]>("neutral");
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -18,6 +21,9 @@ export default function VoiceoverPage() {
 
   const charsUsed = estimateChars(text);
   const isOverLimit = charsUsed > freeQuota.maxCharsPerTts;
+  const selectedVoice = voices.find((v) => v.id === voice);
+  const selectedEmotion = emotions.find((e) => e.id === emotion);
+  const supportsSsml = selectedVoice?.ssml === true;
 
   const handleGenerate = async () => {
     if (!text.trim() || isOverLimit) return;
@@ -26,16 +32,25 @@ export default function VoiceoverPage() {
     setAudioUrl(null);
 
     try {
-      const textToUse = polishedText || text;
+      const rawText = polishedText || text;
+      const emo = selectedEmotion || emotions[0];
+
+      // Use SSML for _v2 voices, plain text + pitch for others
+      const useSsml = supportsSsml && emo.id !== "neutral";
+      const finalText = useSsml
+        ? buildSsml(rawText, { rate: emo.rate, pitch: emo.pitch })
+        : rawText;
 
       const res = await fetch("/api/tts/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: [textToUse],
+          text: [finalText],
           voice,
-          speed,
+          speed: emo.rate * speed,
           volume,
+          pitch: pitch * (1 + emo.pitch / 100),
+          enableSsml: useSsml,
         }),
       });
 
@@ -60,12 +75,17 @@ export default function VoiceoverPage() {
     setError("");
 
     try {
+      const emo = selectedEmotion || emotions[0];
+      const emotionHint =
+        emo.id !== "neutral"
+          ? ` Match a "${emo.label}" emotional tone.`
+          : "";
+
       const res = await fetch("/api/llm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          systemPrompt:
-            "You are a professional short-video script editor for TikTok/Reels/YouTube Shorts. Rewrite the script to be conversational, with short punchy sentences. Add an engaging hook and a clear call-to-action. Output the polished script only.",
+          systemPrompt: `You are a professional short-video script editor for TikTok/Reels/YouTube Shorts. Rewrite the script to be engaging and conversational with short punchy sentences. Add an attention-grabbing hook at the start and a clear call-to-action at the end.${emotionHint} Use natural pauses (commas, breaks). Output only the polished script — no explanations.`,
           userMessage: text,
           temperature: 0.8,
         }),
@@ -102,15 +122,47 @@ export default function VoiceoverPage() {
             >
               {voices.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.label} — {v.style} ({v.gender})
+                  {v.label} — {v.style} ({v.gender}){v.ssml ? " 🎭" : ""}
                 </option>
               ))}
             </select>
+            {supportsSsml && (
+              <p className="mt-1 text-xs text-purple-500">
+                Supports emotion SSML — try different emotions!
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Speed: {speed}x
+              Emotion
+            </label>
+            <div className="grid grid-cols-2 gap-1">
+              {emotions.map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() => setEmotion(e.id)}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-colors ${
+                    emotion === e.id
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <span>{e.emoji}</span>
+                  {e.label}
+                </button>
+              ))}
+            </div>
+            {!supportsSsml && emotion !== "neutral" && (
+              <p className="mt-1 text-xs text-amber-500">
+                SSML only supported on Luna/Chloe/Zoe voices
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Speed: {speed.toFixed(1)}x
             </label>
             <input
               type="range"
@@ -122,8 +174,27 @@ export default function VoiceoverPage() {
               className="w-full accent-purple-600"
             />
             <div className="flex justify-between text-xs text-gray-400">
-              <span>0.5x</span>
-              <span>2.0x</span>
+              <span>Slow</span>
+              <span>Fast</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Pitch: {pitch.toFixed(1)}x
+            </label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={pitch}
+              onChange={(e) => setPitch(Number(e.target.value))}
+              className="w-full accent-purple-600"
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Deep</span>
+              <span>High</span>
             </div>
           </div>
 

@@ -29,3 +29,25 @@ export function estimateChars(text: string): number {
 export function classNames(...inputs: (string | undefined | false | null)[]): string {
   return inputs.filter(Boolean).join(" ");
 }
+
+// Build SSML text with emotion-specific prosody
+// CosyVoice-V2 supports SSML on _v2 voices with enable_ssml flag
+export function buildSsml(
+  text: string,
+  options: { rate?: number; pitch?: number }
+): string {
+  const rate = options.rate ?? 1.0;
+  const pitch = options.pitch ?? 0;
+  const pitchStr = `${pitch >= 0 ? "+" : ""}${Math.round(pitch)}%`;
+
+  // Add natural pauses at punctuation
+  const withBreaks = text
+    .replace(/\.\s*/g, '. <break time="300ms"/>')
+    .replace(/!\s*/g, '! <break time="400ms"/>')
+    .replace(/\?\s*/g, '? <break time="350ms"/>')
+    .replace(/,\s*/g, ', <break time="150ms"/>')
+    .replace(/\n\n/g, '<break time="600ms"/>')
+    .replace(/\n/g, '<break time="300ms"/>');
+
+  return `<speak><prosody rate="${rate}" pitch="${pitchStr}">${withBreaks}</prosody></speak>`;
+}

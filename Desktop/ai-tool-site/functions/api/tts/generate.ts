@@ -6,7 +6,9 @@ export async function onRequestPost(context: { request: Request; env: { FASTMODE
     voice: string;
     speed?: number;
     volume?: number;
+    pitch?: number;
     format?: string;
+    enableSsml?: boolean;
   };
 
   if (!body.text || !Array.isArray(body.text) || body.text.length === 0) {
@@ -24,23 +26,28 @@ export async function onRequestPost(context: { request: Request; env: { FASTMODE
     },
     body: JSON.stringify({
       text: body.text,
+      enable_ssml: body.enableSsml ?? false,
       synthesis_param: {
         model: "cosyvoice-v2",
         voice: body.voice,
         format: body.format || "MP3_16000HZ_MONO_128KBPS",
         volume: body.volume ?? 80,
         speechRate: body.speed ?? 1.0,
-        pitchRate: 1.0,
+        pitchRate: body.pitch ?? 1.0,
       },
     }),
   });
 
   if (!res.ok) {
-    return Response.json({ error: `TTS failed: ${res.status}` }, { status: 500 });
+    const errText = await res.text();
+    return Response.json({ error: `TTS failed: ${res.status} — ${errText}` }, { status: 500 });
   }
 
   const audioBuffer = await res.arrayBuffer();
   return new Response(audioBuffer, {
-    headers: { "Content-Type": "audio/mpeg" },
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": String(audioBuffer.byteLength),
+    },
   });
 }
