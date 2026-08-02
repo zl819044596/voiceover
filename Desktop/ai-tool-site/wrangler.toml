@@ -1,0 +1,12 @@
+# Cloudflare Worker for API key proxy
+# Deploy: npx wrangler deploy
+
+name = "voiceover-ai-worker"
+main = "src/workers/api-proxy.ts"
+compatibility_date = "2026-08-02"
+
+[vars]
+FASTMODELS_API_KEY = ""
+
+[observability]
+enabled = true
