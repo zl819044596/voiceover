@@ -26,24 +26,22 @@ export const models = {
 };
 
 export const voices = [
-  // Microsoft Edge TTS — natural neural voices (free)
-  { id: "en-US-EmmaMultilingualNeural", label: "Emma (Edge)", gender: "female", style: "Natural & Multilingual", source: "edge" },
-  { id: "en-US-AvaMultilingualNeural", label: "Ava (Edge)", gender: "female", style: "Warm & Clear", source: "edge" },
-  { id: "en-US-AndrewMultilingualNeural", label: "Andrew (Edge)", gender: "male", style: "Deep & Trustworthy", source: "edge" },
-  { id: "en-US-BrianMultilingualNeural", label: "Brian (Edge)", gender: "male", style: "Energetic & Young", source: "edge" },
-  { id: "en-GB-RyanNeural", label: "Ryan (Edge)", gender: "male", style: "British Accent", source: "edge" },
-  { id: "en-GB-SoniaNeural", label: "Sonia (Edge)", gender: "female", style: "British Warm", source: "edge" },
-  { id: "zh-CN-XiaoxiaoNeural", label: "晓晓 (Edge)", gender: "female", style: "Chinese Natural", source: "edge" },
-  { id: "zh-CN-YunxiNeural", label: "云希 (Edge)", gender: "male", style: "Chinese Warm", source: "edge" },
-  // Fastmodels cosyvoice-v2 voices (backup)
-  { id: "longjiqi", label: "James", gender: "male", style: "General", source: "fastmodels" },
-  { id: "longyingxiao", label: "William", gender: "male", style: "Authoritative", source: "fastmodels" },
-  { id: "longhouge", label: "George", gender: "male", style: "Deep & Warm", source: "fastmodels" },
-  { id: "longjixin", label: "Oliver", gender: "male", style: "Energetic", source: "fastmodels" },
-  { id: "longanyue", label: "Emma", gender: "female", style: "Gentle", source: "fastmodels" },
-  { id: "longshange", label: "Sophia", gender: "female", style: "Professional", source: "fastmodels" },
-  { id: "longanmin", label: "Arthur", gender: "male", style: "News Anchor", source: "fastmodels" },
-  { id: "longgaoseng", label: "Victor", gender: "male", style: "Narrator", source: "fastmodels" },
+  { id: "longjiqi", label: "James", gender: "male", style: "General" },
+  { id: "longyingxiao", label: "William", gender: "male", style: "Authoritative" },
+  { id: "longhouge", label: "George", gender: "male", style: "Deep & Warm" },
+  { id: "longjixin", label: "Oliver", gender: "male", style: "Energetic" },
+  { id: "longanyue", label: "Emma", gender: "female", style: "Gentle" },
+  { id: "longshange", label: "Sophia", gender: "female", style: "Professional" },
+  { id: "longdaiyu", label: "Lily", gender: "female", style: "Soft" },
+  { id: "longanli", label: "Grace", gender: "female", style: "Friendly" },
+  { id: "longanlang", label: "Henry", gender: "male", style: "Sunny" },
+  { id: "longanwen", label: "Clara", gender: "female", style: "Literary" },
+  { id: "longanyun", label: "Iris", gender: "female", style: "Fresh" },
+  { id: "longyumi_v2", label: "Luna", gender: "female", style: "Sweet" },
+  { id: "longxiaochun_v2", label: "Chloe", gender: "female", style: "Lively" },
+  { id: "longxiaoxia_v2", label: "Zoe", gender: "female", style: "Upbeat" },
+  { id: "longanmin", label: "Arthur", gender: "male", style: "News Anchor" },
+  { id: "longgaoseng", label: "Victor", gender: "male", style: "Narrator" },
 ] as const;
 
 export const freeQuota = {
