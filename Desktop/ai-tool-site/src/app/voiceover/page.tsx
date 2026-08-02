@@ -60,14 +60,19 @@ export default function VoiceoverPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/llm/polish", {
+      const res = await fetch("/api/llm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ script: text }),
+        body: JSON.stringify({
+          systemPrompt:
+            "You are a professional short-video script editor for TikTok/Reels/YouTube Shorts. Rewrite the script to be conversational, with short punchy sentences. Add an engaging hook and a clear call-to-action. Output the polished script only.",
+          userMessage: text,
+          temperature: 0.8,
+        }),
       });
       const data = await res.json();
-      if (data.polished) {
-        setPolishedText(data.polished);
+      if (data.content) {
+        setPolishedText(data.content);
       }
     } catch {
       // Polish is non-critical

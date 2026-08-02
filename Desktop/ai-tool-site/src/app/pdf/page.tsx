@@ -65,22 +65,32 @@ export default function PdfPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/pdf/analyze", {
+      const prompts: Record<string, string> = {
+        summarize:
+          "Summarize the following document in 3-5 sentences. Output only the summary.",
+        keypoints:
+          "Extract 5-10 key points from the following document. Output a bullet list.",
+        qa: `Answer the following question based on the document content: ${question}`,
+      };
+
+      const res = await fetch("/api/llm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: extractedText.slice(0, 8000), // Send first 8K chars for analysis
-          action: mode,
-          question: mode === "qa" ? question : undefined,
+          model: "DeepSeek-V4-Pro",
+          systemPrompt: prompts[mode],
+          userMessage: extractedText.slice(0, 8000),
+          temperature: 0.3,
+          maxTokens: 8192,
         }),
       });
 
       const data = await res.json();
 
       if (mode === "summarize") {
-        setSummary(data.result);
+        setSummary(data.content);
       } else if (mode === "keypoints") {
-        const points = data.result
+        const points = data.content
           .split("\n")
           .filter((line: string) => line.trim().startsWith("-") || line.trim().startsWith("*"))
           .map((line: string) => line.replace(/^[-*]\s*/, ""));

@@ -1,12 +1,11 @@
-# Cloudflare Worker for API key proxy
-# Deploy: npx wrangler deploy
+# Cloudflare Pages + Worker config
+# Pages: npm run build && npx wrangler pages deploy out/ --project-name=voiceover-ai
+# Worker: npm run deploy:worker
 
-name = "voiceover-ai-worker"
-main = "src/workers/api-proxy.ts"
+name = "voiceover-ai"
+pages_build_output_dir = "out"
 compatibility_date = "2026-08-02"
-
-[vars]
-FASTMODELS_API_KEY = ""
+compatibility_flags = ["nodejs_compat"]
 
 [observability]
 enabled = true
