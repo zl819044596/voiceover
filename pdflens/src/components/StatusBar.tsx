@@ -75,7 +75,7 @@ export default function StatusBar({
               />
             </div>
             <p className="mt-2 text-xs text-gray-600">
-              First load downloads ~200MB model. Subsequent uses are instant.
+              First load downloads ~460MB model. Subsequent uses are instant.
             </p>
           </div>
         )}

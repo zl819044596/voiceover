@@ -9,10 +9,13 @@
  * - SmolLM2-360M-Instruct fp32: ~1.4GB
  */
 
-export const MODEL_ID = "onnx-community/SmolLM2-360M-Instruct";
+export const MODEL_ID = "onnx-community/Qwen2.5-0.5B-Instruct";
 
-/** Quantization dtype — "q4" for ~200MB, "q8" for ~400MB, "fp32" for full */
-export const MODEL_DTYPE = "q4" as const;
+/**
+ * Quantization dtype — "q4" (~750MB), "q4f16" (~460MB), "q8" (~700MB), "fp32" (full).
+ * q4f16 is the best quality/size balance and is publicly downloadable (no gated access).
+ */
+export const MODEL_DTYPE = "q4f16" as const;
 
 /** Default generation parameters */
 export const GENERATION_DEFAULTS = {
