@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pdflens.pages.dev/sitemap.xml
