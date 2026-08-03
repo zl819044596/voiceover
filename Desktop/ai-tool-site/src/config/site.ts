@@ -19,10 +19,12 @@ export const apiConfig = {
 };
 
 export const models = {
-  tts: "cosyvoice-v2",
-  llmFast: "DeepSeek-V4-Flash",
-  llmPro: "DeepSeek-V4-Pro",
-  translate: "qwen-mt-turbo",
+  tts: "cosyvoice-v2",          // Voice synthesis engine
+  polish: "MiniMax-M2.7",       // Script brain — emotion tagging & copywriting
+  emotionTag: "MiniMax-M2.7",   // Emotion analysis & annotation
+  llmFast: "DeepSeek-V4-Flash", // General purpose (fallback)
+  llmPro: "DeepSeek-V4-Pro",    // Long document analysis (PDF)
+  translate: "qwen-mt-turbo",   // Translation specialist
 };
 
 export const voices = [

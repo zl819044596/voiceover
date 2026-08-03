@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Mic, Download, Loader2, Sparkles, Languages } from "lucide-react";
-import { voices, emotions, freeQuota } from "@/config/site";
-import { estimateChars, buildSsml } from "@/lib/utils";
+import { Mic, Download, Loader2, Sparkles, Languages, Tags } from "lucide-react";
+import { voices, emotions, models, freeQuota } from "@/config/site";
+import { estimateChars, buildSsml, parseEmotionTags } from "@/lib/utils";
 import type { Emotion } from "@/config/site";
 
 export default function VoiceoverPage() {
@@ -17,6 +17,8 @@ export default function VoiceoverPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [polishedText, setPolishedText] = useState("");
+  const [emotionTaggedText, setEmotionTaggedText] = useState("");
+  const [taggingMode, setTaggingMode] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const charsUsed = estimateChars(text);
@@ -32,14 +34,23 @@ export default function VoiceoverPage() {
     setAudioUrl(null);
 
     try {
-      const rawText = polishedText || text;
+      const sourceText = emotionTaggedText || polishedText || text;
       const emo = selectedEmotion || emotions[0];
+      const hasEmotionTags = /\[(\w+)\].*?\[\/\1\]/.test(sourceText);
 
-      // Use SSML for _v2 voices, plain text + pitch for others
-      const useSsml = supportsSsml && emo.id !== "neutral";
-      const finalText = useSsml
-        ? buildSsml(rawText, { rate: emo.rate, pitch: emo.pitch })
-        : rawText;
+      // Build SSML: emotion-tagged text → parsed SSML, or simple SSML from emotion preset
+      const useSsml = supportsSsml && (hasEmotionTags || emo.id !== "neutral");
+      let finalText: string;
+
+      if (hasEmotionTags && supportsSsml) {
+        // MiniMax M2.7 tagged output → full SSML with per-sentence emotion
+        finalText = parseEmotionTags(sourceText);
+      } else if (useSsml) {
+        // Simple SSML with single emotion prosody
+        finalText = buildSsml(sourceText, { rate: emo.rate, pitch: emo.pitch });
+      } else {
+        finalText = sourceText;
+      }
 
       const res = await fetch("/api/tts/generate", {
         method: "POST",
@@ -78,14 +89,23 @@ export default function VoiceoverPage() {
       const emo = selectedEmotion || emotions[0];
       const emotionHint =
         emo.id !== "neutral"
-          ? ` Match a "${emo.label}" emotional tone.`
+          ? ` Match a "${emo.label}" emotional tone throughout.`
           : "";
 
       const res = await fetch("/api/llm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          systemPrompt: `You are a professional short-video script editor for TikTok/Reels/YouTube Shorts. Rewrite the script to be engaging and conversational with short punchy sentences. Add an attention-grabbing hook at the start and a clear call-to-action at the end.${emotionHint} Use natural pauses (commas, breaks). Output only the polished script — no explanations.`,
+          model: models.polish,
+          systemPrompt: `You are a professional short-video voiceover script editor. Your job is to preprocess raw text into a polished, speakable voiceover script optimized for TTS synthesis.
+
+1. Rewrite for natural speech flow — short punchy sentences, conversational tone
+2. Add an attention-grabbing hook at the start
+3. Add a clear call-to-action at the end
+4. Insert natural pauses with dashes and line breaks
+5. Optimize pacing for short video (15–60 seconds)${emotionHint}
+
+Output ONLY the polished script — no explanations, no markdown.`,
           userMessage: text,
           temperature: 0.8,
         }),
@@ -93,11 +113,58 @@ export default function VoiceoverPage() {
       const data = await res.json();
       if (data.content) {
         setPolishedText(data.content);
+        setEmotionTaggedText("");
       }
     } catch {
       // Polish is non-critical
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEmotionTag = async () => {
+    const sourceText = polishedText || text;
+    if (!sourceText.trim()) return;
+    setLoading(true);
+    setError("");
+    setTaggingMode(true);
+
+    try {
+      const res = await fetch("/api/llm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: models.emotionTag,
+          systemPrompt: `You are an emotion annotation engine. Analyze the text and wrap each sentence or phrase in emotion tags.
+
+Available tags: [happy] [excited] [serious] [warm] [dramatic] [urgent] [calm] [sad]
+
+Format: [emotion]sentence text here[/emotion]
+
+Example input: "Welcome to my channel. Today I have amazing news. This will change everything."
+
+Example output: "[warm]Welcome to my channel.[/warm] [excited]Today I have amazing news![/excited] [dramatic]This will change everything.[/dramatic]"
+
+Rules:
+- Use at most 3-4 different emotions per script
+- Match emotion to the actual sentiment of each sentence
+- Keep sentences intact — don't split mid-sentence
+- Output ONLY the tagged text, no explanations`,
+          userMessage: sourceText,
+          temperature: 0.4,
+          maxTokens: 2048,
+        }),
+      });
+      const data = await res.json();
+      if (data.content) {
+        setEmotionTaggedText(data.content);
+        setPolishedText("");
+      }
+    } catch {
+      // Non-critical
+    } finally {
+      setLoading(false);
+      setTaggingMode(false);
     }
   };
 
@@ -245,10 +312,20 @@ export default function VoiceoverPage() {
               <button
                 onClick={handlePolish}
                 disabled={!text.trim() || loading}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 transition-colors"
+                title="MiniMax M2.7 — Script polishing & optimization"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 AI Polish
+              </button>
+              <button
+                onClick={handleEmotionTag}
+                disabled={!text.trim() || loading}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-100 disabled:opacity-50 transition-colors"
+                title="MiniMax M2.7 — Per-sentence emotion tagging"
+              >
+                <Tags className="h-3.5 w-3.5" />
+                Tag Emotions
               </button>
               <button
                 disabled={!text.trim() || loading}
@@ -263,11 +340,39 @@ export default function VoiceoverPage() {
           {/* Polished result */}
           {polishedText && (
             <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
-              <p className="text-xs font-medium text-purple-700 mb-1">AI Polished:</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-medium text-purple-700">
+                  <Sparkles className="inline h-3 w-3 mr-1" />
+                  MiniMax M2.7 — Polished Script
+                </p>
+                <span className="text-xs text-purple-400">Voiceover optimized</span>
+              </div>
               <p className="text-sm text-purple-900">{polishedText}</p>
               <button
                 onClick={() => setPolishedText("")}
                 className="mt-2 text-xs text-purple-500 hover:text-purple-700"
+              >
+                Use original instead
+              </button>
+            </div>
+          )}
+
+          {/* Emotion tagged result */}
+          {emotionTaggedText && (
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-medium text-orange-700">
+                  <Tags className="inline h-3 w-3 mr-1" />
+                  MiniMax M2.7 — Emotion Tagged
+                </p>
+                <span className="text-xs text-orange-400">
+                  {supportsSsml ? "SSML ready" : "Use with Luna/Chloe/Zoe voices for SSML"}
+                </span>
+              </div>
+              <p className="text-sm text-orange-900 font-mono">{emotionTaggedText}</p>
+              <button
+                onClick={() => setEmotionTaggedText("")}
+                className="mt-2 text-xs text-orange-500 hover:text-orange-700"
               >
                 Use original instead
               </button>
