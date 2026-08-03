@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "GDPR Compliance",
+  description: "Voiceover AI is committed to GDPR compliance. Learn about your data rights and how we protect your privacy.",
+  alternates: { canonical: "https://voiceover-ai.pages.dev/gdpr" },
+};
+
 export default function GdprPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">

@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description: "Tips, guides, and insights for content creators using AI voiceover tools. Learn how to create better short-form video content.",
+  alternates: { canonical: "https://voiceover-ai.pages.dev/blog" },
+};
 
 const posts = [
   {

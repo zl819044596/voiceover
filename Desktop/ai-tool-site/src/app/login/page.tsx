@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Sign in to Voiceover AI to access your Pro features, dashboard, and usage history.",
+  alternates: { canonical: "https://voiceover-ai.pages.dev/login" },
+};
 
 export default function LoginPage() {
   return (

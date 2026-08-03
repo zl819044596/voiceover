@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description: "Start free, upgrade when you need more. Pro plans from $9.99/month with unlimited voiceovers, all 16 voices, voice cloning, and API access.",
+  alternates: { canonical: "https://voiceover-ai.pages.dev/pricing" },
+};
 
 const plans = [
   {

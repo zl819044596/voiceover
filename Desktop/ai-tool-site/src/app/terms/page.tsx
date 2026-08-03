@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Voiceover AI Terms of Service — your agreement for using our AI-powered voiceover and PDF summarizer service.",
+  alternates: { canonical: "https://voiceover-ai.pages.dev/terms" },
+};
+
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">

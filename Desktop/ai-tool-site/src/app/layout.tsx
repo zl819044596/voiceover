@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { JsonLd } from "@/components/json-ld";
+import { siteConfig } from "@/config/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: "Voiceover AI — Free AI Voiceover for Short Videos",
     template: "%s | Voiceover AI",
@@ -29,12 +32,22 @@ export const metadata: Metadata = {
     "free TTS",
     "PDF summarizer",
   ],
+  alternates: {
+    canonical: "https://voiceover-ai.pages.dev",
+  },
   openGraph: {
     type: "website",
     siteName: "Voiceover AI",
     title: "Voiceover AI — Free AI Voiceover for Short Videos",
     description:
       "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
+    url: "https://voiceover-ai.pages.dev",
+    images: [{
+      url: "https://voiceover-ai.pages.dev/og-image.svg",
+      width: 1200,
+      height: 630,
+      alt: "Voiceover AI — Free AI Voiceover for Short Videos",
+    }],
   },
 };
 
@@ -49,6 +62,25 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-white text-gray-900">
+        <JsonLd data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Voiceover AI",
+          url: "https://voiceover-ai.pages.dev",
+          description: "Free AI voiceover generator for short videos. Text-to-speech, voice cloning, and private PDF summarizer.",
+          foundingDate: "2026",
+        }} />
+        <JsonLd data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Voiceover AI",
+          url: "https://voiceover-ai.pages.dev",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://voiceover-ai.pages.dev/search?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }} />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

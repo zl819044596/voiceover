@@ -3,8 +3,8 @@ export const siteConfig = {
   tagline: "AI Voiceover for Short Videos",
   description:
     "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
-  url: "https://voiceoverai.com",
-  ogImage: "/og-image.png",
+  url: "https://voiceover-ai.pages.dev",
+  ogImage: "/og-image.svg",
 };
 
 export const apiConfig = {
