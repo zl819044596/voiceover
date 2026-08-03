@@ -1,12 +1,16 @@
 // Verify the summarization pipeline end-to-end on this machine
 // Uses the same code path as the browser (transformers.js + q4f16)
-const { pipeline } = require("@huggingface/transformers");
+const { pipeline, env } = require("@huggingface/transformers");
+// Use locally downloaded model files (cache_dir layout mirrors HF repo)
+env.allowLocalModels = true;
 
 async function main() {
-  console.log("Loading model (first run downloads ~460MB)...");
+  console.log("Loading local model from /tmp/qwen05/cache...");
   const gen = await pipeline("text-generation", "onnx-community/Qwen2.5-0.5B-Instruct", {
     dtype: "q4f16",
-    device: "wasm",
+    device: "cpu", // Node has no webgpu/wasm backend; browser uses webgpu
+    local_files_only: true,
+    cache_dir: "/tmp/qwen05/cache",
   });
   console.log("Model loaded. Generating summary...");
 
