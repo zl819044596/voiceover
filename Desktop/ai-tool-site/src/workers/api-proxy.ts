@@ -22,7 +22,9 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
     voice: string;
     speed?: number;
     volume?: number;
+    pitch?: number;
     format?: string;
+    enableSsml?: boolean;
   };
 
   if (!body.text || !Array.isArray(body.text) || body.text.length === 0) {
@@ -32,6 +34,12 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
     return Response.json({ error: "Voice is required" }, { status: 400, headers: corsHeaders });
   }
 
+  // Process text: if SSML enabled, wrap in <speak> tags
+  let processedText = body.text;
+  if (body.enableSsml) {
+    processedText = body.text.map((t) => `<speak>${t}</speak>`);
+  }
+
   const res = await fetch(TTS_URL, {
     method: "POST",
     headers: {
@@ -39,14 +47,14 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      text: body.text,
+      text: processedText,
       synthesis_param: {
         model: "cosyvoice-v2",
         voice: body.voice,
-        format: body.format || "MP3_16000HZ_MONO_128KBPS",
+        format: body.format || "MP3_24000HZ_MONO_128KBPS",
         volume: body.volume ?? 80,
         speechRate: body.speed ?? 1.0,
-        pitchRate: 1.0,
+        pitchRate: body.pitch ?? 1.0,
       },
     }),
   });

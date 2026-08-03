@@ -8,7 +8,7 @@ import type { Emotion } from "@/config/site";
 
 export default function VoiceoverPage() {
   const [text, setText] = useState("");
-  const [voice, setVoice] = useState("longjiqi");
+  const [voice, setVoice] = useState("longyumi_v2");
   const [speed, setSpeed] = useState(1.0);
   const [pitch, setPitch] = useState(1.0);
   const [volume, setVolume] = useState(80);
@@ -135,15 +135,17 @@ Output ONLY the polished script — no explanations, no markdown.`,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: models.emotionTag,
-          systemPrompt: `You are an emotion annotation engine. Analyze the text and wrap each sentence or phrase in emotion tags.
+          systemPrompt: `You are an emotion annotation engine. Analyze the text and wrap each sentence or phrase in emotion tags. Works with both English and Chinese text.
 
 Available tags: [happy] [excited] [serious] [warm] [dramatic] [urgent] [calm] [sad]
 
 Format: [emotion]sentence text here[/emotion]
 
-Example input: "Welcome to my channel. Today I have amazing news. This will change everything."
+Example (English): "Welcome to my channel. Today I have amazing news. This will change everything."
+Output: "[warm]Welcome to my channel.[/warm] [excited]Today I have amazing news![/excited] [dramatic]This will change everything.[/dramatic]"
 
-Example output: "[warm]Welcome to my channel.[/warm] [excited]Today I have amazing news![/excited] [dramatic]This will change everything.[/dramatic]"
+Example (中文): "欢迎来到我的频道。今天我要分享一个激动人心的消息。这个工具将彻底改变你的工作方式。"
+Output: "[warm]欢迎来到我的频道。[/warm] [excited]今天我要分享一个激动人心的消息。[/excited] [dramatic]这个工具将彻底改变你的工作方式。[/dramatic]"
 
 Rules:
 - Use at most 3-4 different emotions per script
@@ -189,7 +191,7 @@ Rules:
             >
               {voices.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.label} — {v.style} ({v.gender}){v.ssml ? " 🎭" : ""}
+                  {v.label} — {v.chinese} ({v.gender}){v.ssml ? " 🎭" : ""}
                 </option>
               ))}
             </select>

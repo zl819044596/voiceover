@@ -28,22 +28,24 @@ export const models = {
 };
 
 export const voices = [
-  { id: "longjiqi", label: "James", gender: "male", style: "General", ssml: false },
-  { id: "longyingxiao", label: "William", gender: "male", style: "Authoritative", ssml: false },
-  { id: "longhouge", label: "George", gender: "male", style: "Deep & Warm", ssml: false },
-  { id: "longjixin", label: "Oliver", gender: "male", style: "Energetic", ssml: false },
-  { id: "longanyue", label: "Emma", gender: "female", style: "Gentle", ssml: false },
-  { id: "longshange", label: "Sophia", gender: "female", style: "Professional", ssml: false },
-  { id: "longdaiyu", label: "Lily", gender: "female", style: "Soft", ssml: false },
-  { id: "longanli", label: "Grace", gender: "female", style: "Friendly", ssml: false },
-  { id: "longanlang", label: "Henry", gender: "male", style: "Sunny", ssml: false },
-  { id: "longanwen", label: "Clara", gender: "female", style: "Literary", ssml: false },
-  { id: "longanyun", label: "Iris", gender: "female", style: "Fresh", ssml: false },
-  { id: "longyumi_v2", label: "Luna", gender: "female", style: "Sweet", ssml: true },
-  { id: "longxiaochun_v2", label: "Chloe", gender: "female", style: "Lively", ssml: true },
-  { id: "longxiaoxia_v2", label: "Zoe", gender: "female", style: "Upbeat", ssml: true },
-  { id: "longanmin", label: "Arthur", gender: "male", style: "News Anchor", ssml: false },
-  { id: "longgaoseng", label: "Victor", gender: "male", style: "Narrator", ssml: false },
+  // 🌟 Recommended for Chinese / SSML-enabled (best prosody)
+  { id: "longyumi_v2", label: "Luna", gender: "female", style: "Sweet", ssml: true, chinese: "甜美" },
+  { id: "longxiaochun_v2", label: "Chloe", gender: "female", style: "Lively", ssml: true, chinese: "活泼" },
+  { id: "longxiaoxia_v2", label: "Zoe", gender: "female", style: "Upbeat", ssml: true, chinese: "明快" },
+  // 🇨🇳 Chinese-optimized voices
+  { id: "longanyue", label: "Emma", gender: "female", style: "Gentle", ssml: false, chinese: "温柔" },
+  { id: "longshange", label: "Sophia", gender: "female", style: "Professional", ssml: false, chinese: "专业" },
+  { id: "longdaiyu", label: "Lily", gender: "female", style: "Soft", ssml: false, chinese: "柔和" },
+  { id: "longanli", label: "Grace", gender: "female", style: "Friendly", ssml: false, chinese: "友好" },
+  { id: "longanlang", label: "Henry", gender: "male", style: "Sunny", ssml: false, chinese: "阳光" },
+  { id: "longanwen", label: "Clara", gender: "female", style: "Literary", ssml: false, chinese: "文艺" },
+  { id: "longanyun", label: "Iris", gender: "female", style: "Fresh", ssml: false, chinese: "清新" },
+  { id: "longjiqi", label: "James", gender: "male", style: "General", ssml: false, chinese: "通用" },
+  { id: "longyingxiao", label: "William", gender: "male", style: "Authoritative", ssml: false, chinese: "权威" },
+  { id: "longhouge", label: "George", gender: "male", style: "Deep & Warm", ssml: false, chinese: "深沉" },
+  { id: "longjixin", label: "Oliver", gender: "male", style: "Energetic", ssml: false, chinese: "活力" },
+  { id: "longanmin", label: "Arthur", gender: "male", style: "News Anchor", ssml: false, chinese: "新闻" },
+  { id: "longgaoseng", label: "Victor", gender: "male", style: "Narrator", ssml: false, chinese: "旁白" },
 ] as const;
 
 export const emotions = [
