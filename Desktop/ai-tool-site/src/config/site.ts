@@ -28,11 +28,14 @@ export const models = {
 };
 
 export const voices = [
-  // 🌟 Recommended for Chinese / SSML-enabled (best prosody)
+  // 🌟 Standard Mandarin (新闻播音级, 无方言)
+  { id: "longanmin", label: "Arthur", gender: "male", style: "News Anchor", ssml: false, chinese: "新闻·标准普通话" },
+  { id: "longgaoseng", label: "Victor", gender: "male", style: "Narrator", ssml: false, chinese: "旁白·标准普通话" },
+  // 🌟 SSML-enabled (expressive, 支持情感标记)
   { id: "longyumi_v2", label: "Luna", gender: "female", style: "Sweet", ssml: true, chinese: "甜美" },
   { id: "longxiaochun_v2", label: "Chloe", gender: "female", style: "Lively", ssml: true, chinese: "活泼" },
   { id: "longxiaoxia_v2", label: "Zoe", gender: "female", style: "Upbeat", ssml: true, chinese: "明快" },
-  // 🇨🇳 Chinese-optimized voices
+  // 🇨🇳 Chinese voices
   { id: "longanyue", label: "Emma", gender: "female", style: "Gentle", ssml: false, chinese: "温柔" },
   { id: "longshange", label: "Sophia", gender: "female", style: "Professional", ssml: false, chinese: "专业" },
   { id: "longdaiyu", label: "Lily", gender: "female", style: "Soft", ssml: false, chinese: "柔和" },
@@ -44,8 +47,6 @@ export const voices = [
   { id: "longyingxiao", label: "William", gender: "male", style: "Authoritative", ssml: false, chinese: "权威" },
   { id: "longhouge", label: "George", gender: "male", style: "Deep & Warm", ssml: false, chinese: "深沉" },
   { id: "longjixin", label: "Oliver", gender: "male", style: "Energetic", ssml: false, chinese: "活力" },
-  { id: "longanmin", label: "Arthur", gender: "male", style: "News Anchor", ssml: false, chinese: "新闻" },
-  { id: "longgaoseng", label: "Victor", gender: "male", style: "Narrator", ssml: false, chinese: "旁白" },
 ] as const;
 
 export const emotions = [

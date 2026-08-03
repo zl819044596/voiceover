@@ -8,7 +8,7 @@ import type { Emotion } from "@/config/site";
 
 export default function VoiceoverPage() {
   const [text, setText] = useState("");
-  const [voice, setVoice] = useState("longyumi_v2");
+  const [voice, setVoice] = useState("longanmin");
   const [speed, setSpeed] = useState(1.0);
   const [pitch, setPitch] = useState(1.0);
   const [volume, setVolume] = useState(80);
