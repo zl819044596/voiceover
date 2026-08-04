@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "GDPR Compliance",
   description: "Voiceover AI is committed to GDPR compliance. Learn about your data rights and how we protect your privacy.",
-  alternates: { canonical: "https://voiceover-ai.pages.dev/gdpr" },
+  alternates: { canonical: "https://voiceover.getfitai.io/gdpr" },
 };
 
 export default function GdprPage() {
@@ -55,8 +55,8 @@ export default function GdprPage() {
           <h2 className="text-lg font-semibold text-gray-900">Contact DPO</h2>
           <p className="mt-2">
             For GDPR-related requests, contact our Data Protection Officer at{" "}
-            <a href="mailto:dpo@voiceoverai.com" className="text-purple-600 hover:underline">
-              dpo@voiceoverai.com
+            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
+              zl18672545321@gmail.com
             </a>
             . We will respond within 30 days.
           </p>

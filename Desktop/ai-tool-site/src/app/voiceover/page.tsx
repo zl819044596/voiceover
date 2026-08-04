@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Mic, Download, Loader2, Sparkles, Languages, Tags } from "lucide-react";
+import { Mic, Download, Loader2, Sparkles, Tags } from "lucide-react";
 import { voices, emotions, models, freeQuota } from "@/config/site";
 import { estimateChars, buildSsml, parseEmotionTags } from "@/lib/utils";
+import {
+  canGenerate,
+  incrementUsage,
+  getRemainingToday,
+  getTotalAvailable,
+  getTodayUsed,
+} from "@/lib/usage-tracker";
+import { ShareBonus } from "@/components/share-bonus";
 import type { Emotion } from "@/config/site";
 
 export default function VoiceoverPage() {
@@ -19,6 +27,7 @@ export default function VoiceoverPage() {
   const [polishedText, setPolishedText] = useState("");
   const [emotionTaggedText, setEmotionTaggedText] = useState("");
   const [taggingMode, setTaggingMode] = useState(false);
+  const [showCreditsExhausted, setShowCreditsExhausted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const charsUsed = estimateChars(text);
@@ -29,6 +38,11 @@ export default function VoiceoverPage() {
 
   const handleGenerate = async () => {
     if (!text.trim() || isOverLimit) return;
+    if (!canGenerate()) {
+      setShowCreditsExhausted(true);
+      return;
+    }
+    setShowCreditsExhausted(false);
     setLoading(true);
     setError("");
     setAudioUrl(null);
@@ -73,6 +87,7 @@ export default function VoiceoverPage() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       setAudioUrl(url);
+      incrementUsage();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -282,14 +297,28 @@ Rules:
             />
           </div>
 
-          <div className="rounded-lg bg-purple-50 p-4">
-            <p className="text-xs font-medium text-purple-700">Free Tier</p>
-            <p className="mt-1 text-xs text-purple-600">
-              {charsUsed}/{freeQuota.maxCharsPerTts} chars
-              {isOverLimit && (
-                <span className="ml-1 text-red-500 font-medium">— Over limit!</span>
-              )}
-            </p>
+          <div className="rounded-lg bg-purple-50 p-4 space-y-3">
+            <div>
+              <p className="text-xs font-medium text-purple-700">Free Tier</p>
+              <p className="mt-1 text-xs text-purple-600">
+                {charsUsed}/{freeQuota.maxCharsPerTts} chars
+                {isOverLimit && (
+                  <span className="ml-1 text-red-500 font-medium">— Over limit!</span>
+                )}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-purple-700">Credits Today</p>
+              <p className="mt-1 text-xs text-purple-600">
+                {getTodayUsed()} / {getTotalAvailable()} used
+                {getRemainingToday() <= 1 && (
+                  <span className="ml-1 text-red-500 font-medium">
+                    — Low credits!
+                  </span>
+                )}
+              </p>
+            </div>
+            <ShareBonus />
           </div>
         </div>
 
@@ -328,13 +357,6 @@ Rules:
               >
                 <Tags className="h-3.5 w-3.5" />
                 Tag Emotions
-              </button>
-              <button
-                disabled={!text.trim() || loading}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                <Languages className="h-3.5 w-3.5" />
-                Translate
               </button>
             </div>
           </div>
@@ -381,6 +403,16 @@ Rules:
             </div>
           )}
 
+          {/* Credits exhausted */}
+          {showCreditsExhausted && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 space-y-2">
+              <p className="text-sm font-medium text-amber-800">
+                Credit exhausted — share to get more!
+              </p>
+              <ShareBonus />
+            </div>
+          )}
+
           {/* Error */}
           {error && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
@@ -389,7 +421,7 @@ Rules:
           {/* Generate button */}
           <button
             onClick={handleGenerate}
-            disabled={!text.trim() || isOverLimit || loading}
+            disabled={!text.trim() || isOverLimit || loading || !canGenerate()}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (

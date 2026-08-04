@@ -1,6 +1,13 @@
 # Cloudflare Pages + Worker config
 # Pages: npm run build && npx wrangler pages deploy out/ --project-name=voiceover-ai
 # Worker: npm run deploy:worker
+#
+# Set secrets with:
+#   npx wrangler secret put GOOGLE_CLIENT_ID
+#   npx wrangler secret put GOOGLE_CLIENT_SECRET
+#   npx wrangler secret put JWT_SECRET
+#
+# Or set vars in Cloudflare Dashboard for non-sensitive config.
 
 name = "voiceover-ai"
 pages_build_output_dir = "out"
@@ -9,3 +16,10 @@ compatibility_flags = ["nodejs_compat"]
 
 [observability]
 enabled = true
+
+[[kv_namespaces]]
+binding = "voiceover_kv"
+id = "4315262945a340a6944bfaeb730e118c"
+
+[vars]
+GOOGLE_REDIRECT_URI = "https://voiceover.getfitai.io/api/auth/callback"

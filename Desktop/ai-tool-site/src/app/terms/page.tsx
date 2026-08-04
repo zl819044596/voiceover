@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Voiceover AI Terms of Service — your agreement for using our AI-powered voiceover and PDF summarizer service.",
-  alternates: { canonical: "https://voiceover-ai.pages.dev/terms" },
+  alternates: { canonical: "https://voiceover.getfitai.io/terms" },
 };
 
 export default function TermsPage() {
@@ -42,7 +42,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-gray-900">4. Payment and Refunds</h2>
           <p className="mt-2">
             Paid subscriptions are billed in advance. Refund requests are handled on a
-            case-by-case basis. Contact support@voiceoverai.com for refund inquiries.
+            case-by-case basis. Contact zl18672545321@gmail.com for refund inquiries.
           </p>
         </section>
 
@@ -67,8 +67,8 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-gray-900">7. Contact</h2>
           <p className="mt-2">
             Questions? Reach out at{" "}
-            <a href="mailto:support@voiceoverai.com" className="text-purple-600 hover:underline">
-              support@voiceoverai.com
+            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
+              zl18672545321@gmail.com
             </a>
             .
           </p>

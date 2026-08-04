@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Voiceover AI Privacy Policy — how we collect, use, and protect your personal data when you use our services.",
-  alternates: { canonical: "https://voiceover-ai.pages.dev/privacy" },
+  alternates: { canonical: "https://voiceover.getfitai.io/privacy" },
 };
 
 export default function PrivacyPage() {
@@ -59,8 +59,8 @@ export default function PrivacyPage() {
           <p className="mt-2">
             You have the right to access, correct, or delete your personal data. See our
             GDPR page for details, or contact us at{" "}
-            <a href="mailto:support@voiceoverai.com" className="text-purple-600 hover:underline">
-              support@voiceoverai.com
+            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
+              zl18672545321@gmail.com
             </a>
             .
           </p>
@@ -70,8 +70,8 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-gray-900">6. Contact</h2>
           <p className="mt-2">
             For privacy-related inquiries:{" "}
-            <a href="mailto:privacy@voiceoverai.com" className="text-purple-600 hover:underline">
-              privacy@voiceoverai.com
+            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
+              zl18672545321@gmail.com
             </a>
           </p>
         </section>

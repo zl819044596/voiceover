@@ -1,0 +1,11 @@
+name = "voiceover-api"
+main = "src/workers/api-proxy.ts"
+compatibility_date = "2026-08-02"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "voiceover_kv"
+id = "4315262945a340a6944bfaeb730e118c"
+
+[vars]
+GOOGLE_REDIRECT_URI = "https://voiceover.getfitai.io/api/auth/callback"

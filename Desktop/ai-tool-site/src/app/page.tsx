@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mic, FileText, Zap, Shield, ArrowRight, Sparkles } from "lucide-react";
+import { Mic, Zap, Shield, ArrowRight, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -28,12 +28,6 @@ export default function HomePage() {
                 Try Free Voiceover
                 <ArrowRight className="h-5 w-5" />
               </Link>
-              <Link
-                href="/pdf"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-4 text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors sm:w-auto"
-              >
-                Try PDF Summarizer
-              </Link>
             </div>
           </div>
         </div>
@@ -57,11 +51,6 @@ export default function HomePage() {
               icon={<Shield className="h-6 w-6" />}
               title="Voice Cloning"
               description="Upload a 10-second audio sample, clone any voice. Perfect for consistent brand voice across all your videos."
-            />
-            <FeatureCard
-              icon={<FileText className="h-6 w-6" />}
-              title="Private PDF Summarizer"
-              description="Summarize PDFs directly in your browser. No file upload, 100% private. Your documents never leave your device."
             />
             <FeatureCard
               icon={<Sparkles className="h-6 w-6" />}

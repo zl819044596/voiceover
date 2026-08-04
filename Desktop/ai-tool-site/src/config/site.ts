@@ -3,7 +3,7 @@ export const siteConfig = {
   tagline: "AI Voiceover for Short Videos",
   description:
     "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
-  url: "https://voiceover-ai.pages.dev",
+  url: "https://voiceover.getfitai.io",
   ogImage: "/og-image.svg",
 };
 
@@ -64,19 +64,31 @@ export type Emotion = (typeof emotions)[number];
 export const freeQuota = {
   dailyTtsCount: 3,
   maxCharsPerTts: 500,
-  dailyPdfCount: 20,
-  maxPdfSize: 10 * 1024 * 1024, // 10MB
+} as const;
+
+export const shareBonus = {
+  bonusCreditsPerShare: 3,
+  maxSharesPerDay: 5,
+  totalBonusCap: 30,
 } as const;
 
 export const proQuota = {
-  dailyTtsCount: Infinity,
+  monthlyCount: 500,
   maxCharsPerTts: 10000,
-  dailyPdfCount: Infinity,
-  maxPdfSize: 50 * 1024 * 1024, // 50MB
+} as const;
+
+export const shareConfig = {
+  bonusCreditsPerShare: 3,
+  maxBonusCredits: 30,
+  shareText:
+    "🎙️ Turn text into natural AI voiceovers for free! No signup needed. https://voiceover.getfitai.io",
+  shareTitle: "AI Voiceover — Free Text-to-Speech",
 } as const;
 
 export const pricing = {
   monthly: { price: 14.99, stripePriceId: "price_monthly" },
   yearly: { price: 9.99, stripePriceId: "price_yearly" },
-  lifetime: { price: 89, stripePriceId: "price_lifetime" },
+  yearlyTotal: 119.88,
+  lifetime: { price: 149, stripePriceId: "price_lifetime", limit: 500 },
+  business: { price: 49, stripePriceId: "price_business" },
 } as const;

@@ -14,11 +14,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/pdf" className="text-sm text-gray-500 hover:text-gray-700">
-                  PDF Tools
-                </Link>
-              </li>
-              <li>
                 <Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-700">
                   Pricing
                 </Link>
@@ -69,8 +64,8 @@ export function Footer() {
             <h4 className="text-sm font-semibold text-gray-900">Contact</h4>
             <ul className="mt-3 space-y-2">
               <li>
-                <a href="mailto:support@voiceoverai.com" className="text-sm text-gray-500 hover:text-gray-700">
-                  support@voiceoverai.com
+                <a href="mailto:zl18672545321@gmail.com" className="text-sm text-gray-500 hover:text-gray-700">
+                  zl18672545321@gmail.com
                 </a>
               </li>
             </ul>

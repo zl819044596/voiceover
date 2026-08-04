@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: post.title,
     description: `Read "${post.title}" — tips and insights for content creators using AI voiceover tools.`,
-    alternates: { canonical: `https://voiceover-ai.pages.dev/blog/${slug}` },
+    alternates: { canonical: `https://voiceover.getfitai.io/blog/${slug}` },
   };
 }
 
