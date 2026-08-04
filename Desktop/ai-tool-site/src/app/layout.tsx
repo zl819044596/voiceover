@@ -65,14 +65,14 @@ export default function RootLayout({
     >
       <head>
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-S8841LSJ66"
+          src="https://www.googletagmanager.com/gtag/js?id=G-2N7QYREJNW"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-S8841LSJ66');`}
+          gtag('config', 'G-2N7QYREJNW');`}
         </Script>
       </head>
       <body className="flex min-h-full flex-col bg-white text-gray-900">
