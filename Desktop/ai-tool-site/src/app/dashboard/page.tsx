@@ -3,6 +3,7 @@
 import { useAuth, getPlanLabel } from "@/lib/auth-context";
 import { getTodayUsed, getTotalAvailable, getBonusCredits } from "@/lib/usage-tracker";
 import { ShareBonus } from "@/components/share-bonus";
+import { Mic } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, subscription, isLoggedIn, isPro } = useAuth();
@@ -83,6 +84,16 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="mt-6">
+        <a
+          href="/voiceover"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-700 transition-colors"
+        >
+          <Mic className="h-4 w-4" />
+          Go to Voiceover Studio
+        </a>
       </div>
 
       <div className="mt-8">
