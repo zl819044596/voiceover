@@ -52,18 +52,23 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="rounded-xl border border-gray-100 p-6">
+        <div className={`rounded-xl border p-6 ${isPro ? "border-purple-200 bg-purple-50" : "border-gray-200 bg-gray-50"}`}>
           <h3 className="text-sm font-semibold text-gray-900">Current Plan</h3>
           <p className={`mt-2 text-xl font-bold ${planColor}`}>
             {planLabel}
-            {isPro && (
-              <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                Active
+            {isPro ? (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                Pro Member
+              </span>
+            ) : (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                Free
               </span>
             )}
           </p>
           {isPro && subscription && (
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-purple-500">
               Purchased: {new Date(subscription.purchasedAt).toLocaleDateString()}
               {subscription.expiresAt && (
                 <> · Expires: {new Date(subscription.expiresAt).toLocaleDateString()}</>
@@ -72,8 +77,8 @@ export default function DashboardPage() {
           )}
           {!isPro && (
             <p className="mt-1 text-xs text-gray-400">
-              <a href="/pricing" className="text-purple-600 hover:underline">
-                Upgrade to Pro
+              <a href="/pricing" className="text-purple-600 font-medium hover:underline">
+                Upgrade to Pro →
               </a>
             </p>
           )}

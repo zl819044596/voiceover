@@ -7,5 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 binding = "voiceover_kv"
 id = "4315262945a340a6944bfaeb730e118c"
 
+[[routes]]
+pattern = "voiceover.getfitai.io/api/auth/*"
+zone_name = "getfitai.io"
+
 [vars]
 GOOGLE_REDIRECT_URI = "https://voiceover.getfitai.io/api/auth/callback"

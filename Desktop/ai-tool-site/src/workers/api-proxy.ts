@@ -115,10 +115,10 @@ interface Subscription {
 
 // Product ID to plan name mapping
 const PRODUCT_PLANS: Record<string, { plan: string; label: string }> = {
-  prod_6gXyPkmTSZuwMgkYU2DPQd: { plan: "pro_monthly", label: "Pro Monthly" },
-  prod_7NtvaKyjtGRU1SPDXDMGuw: { plan: "pro_yearly", label: "Pro Yearly" },
-  prod_5VrKGtT4jWn3OJ4XPvoy1b: { plan: "lifetime", label: "Lifetime" },
-  prod_72NSownOenMiIf4WdEnQat: { plan: "business", label: "Business" },
+  prod_sxqwhR47PY5ff1lTqWGB6: { plan: "pro_monthly", label: "Pro Monthly" },
+  prod_6CddbxiFgvrZ4UIR6d1wMc: { plan: "pro_yearly", label: "Pro Yearly" },
+  prod_4YMEBBeAw4LXd4dPkIEN7m: { plan: "lifetime", label: "Lifetime" },
+  prod_1Z4E00JBKlHYut6Gp1I4kG: { plan: "business", label: "Business" },
 };
 
 async function getSubscription(env: Env, email: string): Promise<Subscription | null> {
@@ -134,7 +134,7 @@ async function setSubscription(env: Env, email: string, sub: Subscription): Prom
 
 // --- Creem Checkout ---
 
-const CREEM_API_BASE = "https://test-api.creem.io/v1";
+const CREEM_API_BASE = "https://api.creem.io/v1";
 
 async function creemCheckout(request: Request, env: Env): Promise<Response> {
   try {
@@ -528,6 +528,28 @@ window.location.replace("/dashboard")}catch(e){window.location.replace("/dashboa
 
     if (url.pathname === "/api/webhook" && request.method === "POST") {
       return creemWebhook(request, env);
+    }
+
+    // ── Admin: manual subscription set (temporary, for testing) ──
+
+    if (url.pathname === "/api/admin/set-subscription" && request.method === "POST") {
+      const { email, plan } = await request.json() as { email: string; plan: string };
+      if (!email || !plan) {
+        return Response.json({ error: "email and plan required" }, { status: 400, headers: corsHeaders });
+      }
+      const subscription: Subscription = {
+        plan,
+        status: "active",
+        checkoutId: "admin_manual",
+        purchasedAt: new Date().toISOString(),
+      };
+      if (plan === "pro_monthly") {
+        subscription.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (plan === "pro_yearly") {
+        subscription.expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      }
+      await setSubscription(env, email, subscription);
+      return Response.json({ ok: true, plan }, { headers: corsHeaders });
     }
 
     // ── Subscription Status API ──

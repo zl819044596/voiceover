@@ -1,7 +1,7 @@
 // Pages Function: POST /api/checkout
 // Creates a Creem checkout session and returns the checkout URL
 
-const CREEM_API_BASE = "https://test-api.creem.io/v1";
+const CREEM_API_BASE = "https://api.creem.io/v1";
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",

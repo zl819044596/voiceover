@@ -27,7 +27,7 @@ const plans = [
     price: "$14.99",
     period: "per month",
     cta: "Subscribe Monthly",
-    productId: "prod_6gXyPkmTSZuwMgkYU2DPQd",
+    productId: "prod_sxqwhR47PY5ff1lTqWGB6",
     featured: true,
     features: [
       "500 voiceovers per month",
@@ -45,7 +45,7 @@ const plans = [
     period: "per month, billed annually",
     subtext: "$119.88/year",
     cta: "Subscribe Yearly",
-    productId: "prod_7NtvaKyjtGRU1SPDXDMGuw",
+    productId: "prod_6CddbxiFgvrZ4UIR6d1wMc",
     features: [
       "Everything in Pro Monthly",
       "2 months free",
@@ -58,7 +58,7 @@ const plans = [
     period: "one-time",
     subtext: "Limited to first 500 users",
     cta: "Buy Lifetime",
-    productId: "prod_5VrKGtT4jWn3OJ4XPvoy1b",
+    productId: "prod_4YMEBBeAw4LXd4dPkIEN7m",
     features: [
       "Everything in Pro, forever",
       "No recurring payments",
@@ -70,7 +70,7 @@ const plans = [
     price: "$49",
     period: "per month",
     cta: "Subscribe Business",
-    productId: "prod_72NSownOenMiIf4WdEnQat",
+    productId: "prod_1Z4E00JBKlHYut6Gp1I4kG",
     features: [
       "Unlimited voiceovers",
       "10,000 characters per voiceover",
@@ -84,6 +84,59 @@ const plans = [
 
 export default function PricingPage() {
   const { isPro, subscription } = useAuth();
+  const currentPlan = subscription?.plan || null;
+
+  const getButtonForPlan = (plan: (typeof plans)[number]) => {
+    if (!plan.productId) {
+      // Free plan
+      return (
+        <Link
+          href={plan.href as string}
+          className="block w-full rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          {plan.cta}
+        </Link>
+      );
+    }
+
+    if (!isPro) {
+      // Not a member — show checkout button
+      return (
+        <CheckoutButton
+          productId={plan.productId}
+          label={plan.cta}
+          featured={plan.featured}
+        />
+      );
+    }
+
+    // Pro member — check which plan this is
+    const planIdMap: Record<string, string> = {
+      prod_sxqwhR47PY5ff1lTqWGB6: "pro_monthly",
+      prod_6CddbxiFgvrZ4UIR6d1wMc: "pro_yearly",
+      prod_4YMEBBeAw4LXd4dPkIEN7m: "lifetime",
+      prod_1Z4E00JBKlHYut6Gp1I4kG: "business",
+    };
+    const thisPlanName = planIdMap[plan.productId];
+
+    if (thisPlanName === currentPlan) {
+      // Current plan — cannot repurchase
+      return (
+        <span className="block w-full rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-center text-sm font-semibold text-green-700">
+          ✓ Current Plan
+        </span>
+      );
+    }
+
+    // Different plan — allow upgrade/downgrade
+    return (
+      <CheckoutButton
+        productId={plan.productId}
+        label={currentPlan ? "Switch Plan" : plan.cta}
+        featured={plan.featured}
+      />
+    );
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -121,26 +174,7 @@ export default function PricingPage() {
             {plan.subtext && (
               <p className="mt-1 text-xs text-gray-400">{plan.subtext}</p>
             )}
-            {plan.productId ? (
-              isPro ? (
-                <span className="block w-full rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-center text-sm font-semibold text-green-700">
-                  Current Plan
-                </span>
-              ) : (
-                <CheckoutButton
-                  productId={plan.productId}
-                  label={plan.cta}
-                  featured={plan.featured}
-                />
-              )
-            ) : (
-              <Link
-                href={plan.href as string}
-                className="block w-full rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                {plan.cta}
-              </Link>
-            )}
+            {getButtonForPlan(plan)}
             <ul className="mt-6 space-y-2.5 flex-1">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2 text-sm text-gray-600">
