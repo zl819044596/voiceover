@@ -115,9 +115,9 @@ interface Subscription {
 
 // Product ID to plan name mapping
 const PRODUCT_PLANS: Record<string, { plan: string; label: string }> = {
-  prod_50aZQktb0t0ataLsYvKDZB: { plan: "pro_monthly", label: "Pro Monthly" },
-  prod_petqehnI9GUYEsLQQBjBY: { plan: "pro_yearly", label: "Pro Yearly" },
-  prod_36PxnxDybdvGok8iXqRrLq: { plan: "lifetime", label: "Lifetime" },
+  prod_5KkZ7I2LrQAhaSaQ6geAZK: { plan: "pro_monthly", label: "Pro Monthly" },
+  prod_6ozTK9Z9P0mZHgdhjTeory: { plan: "pro_yearly", label: "Pro Yearly" },
+  prod_4zmW4f2538DeNtflTjEwDR: { plan: "lifetime", label: "Lifetime" },
   prod_1Z4E00JBKlHYut6Gp1I4kG: { plan: "business", label: "Business" },
 };
 
