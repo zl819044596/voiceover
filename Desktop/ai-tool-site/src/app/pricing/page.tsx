@@ -25,7 +25,7 @@ const plans = [
     price: "$14.99",
     period: "per month",
     cta: "Subscribe Monthly",
-    productId: "prod_5KkZ7I2LrQAhaSaQ6geAZK",
+    productId: "prod_6vhhCN7oNphRj1V2eV1byF",
     featured: true,
     features: [
       "Unlimited Projects",
@@ -41,7 +41,7 @@ const plans = [
     period: "per month, billed annually",
     subtext: "$119.88/year",
     cta: "Subscribe Yearly",
-    productId: "prod_6ozTK9Z9P0mZHgdhjTeory",
+    productId: "prod_1ep5uKFxB9TlVSPCG4Iktz",
     features: [
       "Unlimited Projects",
       "20,000 Characters per Month",
@@ -55,7 +55,7 @@ const plans = [
     price: "$149",
     period: "one-time",
     cta: "Buy Lifetime",
-    productId: "prod_4zmW4f2538DeNtflTjEwDR",
+    productId: "prod_5SC6SMZsrRNFxhkNilsMBN",
     features: [
       "Unlimited Projects",
       "100,000 Characters per Month",
@@ -69,7 +69,7 @@ const plans = [
     price: "$49",
     period: "per month",
     cta: "Subscribe Business",
-    productId: "prod_1Z4E00JBKlHYut6Gp1I4kG",
+    productId: "prod_27nNfLcuDu4np4F7yzrdEs",
     features: [
       "Unlimited Projects",
       "200,000 Characters per Month",
@@ -112,10 +112,10 @@ export default function PricingPage() {
 
     // Pro member — check which plan this is
     const planIdMap: Record<string, string> = {
-      prod_5KkZ7I2LrQAhaSaQ6geAZK: "pro_monthly",
-      prod_6ozTK9Z9P0mZHgdhjTeory: "pro_yearly",
-      prod_4zmW4f2538DeNtflTjEwDR: "lifetime",
-      prod_1Z4E00JBKlHYut6Gp1I4kG: "business",
+      prod_6vhhCN7oNphRj1V2eV1byF: "pro_monthly",
+      prod_1ep5uKFxB9TlVSPCG4Iktz: "pro_yearly",
+      prod_5SC6SMZsrRNFxhkNilsMBN: "lifetime",
+      prod_27nNfLcuDu4np4F7yzrdEs: "business",
     };
     const thisPlanName = planIdMap[plan.productId];
 

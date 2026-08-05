@@ -115,10 +115,10 @@ interface Subscription {
 
 // Product ID to plan name mapping
 const PRODUCT_PLANS: Record<string, { plan: string; label: string }> = {
-  prod_5KkZ7I2LrQAhaSaQ6geAZK: { plan: "pro_monthly", label: "Pro Monthly" },
-  prod_6ozTK9Z9P0mZHgdhjTeory: { plan: "pro_yearly", label: "Pro Yearly" },
-  prod_4zmW4f2538DeNtflTjEwDR: { plan: "lifetime", label: "Lifetime" },
-  prod_1Z4E00JBKlHYut6Gp1I4kG: { plan: "business", label: "Business" },
+  prod_6vhhCN7oNphRj1V2eV1byF: { plan: "pro_monthly", label: "Pro Monthly" },
+  prod_1ep5uKFxB9TlVSPCG4Iktz: { plan: "pro_yearly", label: "Pro Yearly" },
+  prod_5SC6SMZsrRNFxhkNilsMBN: { plan: "lifetime", label: "Lifetime" },
+  prod_27nNfLcuDu4np4F7yzrdEs: { plan: "business", label: "Business" },
 };
 
 async function getSubscription(env: Env, email: string): Promise<Subscription | null> {
@@ -134,7 +134,7 @@ async function setSubscription(env: Env, email: string, sub: Subscription): Prom
 
 // --- Creem Checkout ---
 
-const CREEM_API_BASE = "https://api.creem.io/v1";
+const CREEM_API_BASE = "https://test-api.creem.io/v1";
 
 async function creemCheckout(request: Request, env: Env): Promise<Response> {
   try {
