@@ -43,6 +43,10 @@ export function CheckoutButton({ productId, label, featured }: CheckoutButtonPro
       const data = await res.json();
 
       if (data.checkoutUrl) {
+        // Store checkoutId for payment verification on return
+        if (data.checkoutId) {
+          localStorage.setItem("pendingCheckoutId", data.checkoutId);
+        }
         window.location.href = data.checkoutUrl;
       } else if (res.status === 409) {
         setError("You already have an active subscription. Refresh the page to update.");

@@ -15,8 +15,9 @@ interface Env {
   CREEM_API_KEY: string;
   CREEM_WEBHOOK_SECRET?: string;
   voiceover_kv: {
-    get: (key: string, type: "json") => Promise<unknown>;
+    get: (key: string, type?: "json" | "text") => Promise<unknown>;
     put: (key: string, value: string) => Promise<void>;
+    delete: (key: string) => Promise<void>;
   };
 }
 
@@ -167,6 +168,10 @@ async function creemCheckout(request: Request, env: Env): Promise<Response> {
       success_url: "https://voiceover.getfitai.io/dashboard?from=checkout",
     };
 
+    if (email) {
+      body.customer = { email };
+    }
+
     const res = await fetch(`${CREEM_API_BASE}/checkouts`, {
       method: "POST",
       headers: {
@@ -182,9 +187,95 @@ async function creemCheckout(request: Request, env: Env): Promise<Response> {
     }
 
     const data = await res.json() as { checkout_url: string; id: string };
+
+    // Store pending checkout for payment verification
+    if (email) {
+      await env.voiceover_kv.put(
+        `pending:${data.id}`,
+        JSON.stringify({ email, productId, createdAt: new Date().toISOString() })
+      );
+    }
+
     return Response.json({ checkoutUrl: data.checkout_url, checkoutId: data.id }, { headers: corsHeaders });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Checkout failed";
+    return Response.json({ error: message }, { status: 500, headers: corsHeaders });
+  }
+}
+
+// --- Verify Payment ---
+
+async function verifyPayment(request: Request, env: Env): Promise<Response> {
+  try {
+    const url = new URL(request.url);
+    const checkoutId = url.searchParams.get("ch");
+    if (!checkoutId) {
+      return Response.json({ error: "Missing checkoutId" }, { status: 400, headers: corsHeaders });
+    }
+
+    // Check pending checkout record
+    const pendingRaw = await env.voiceover_kv.get(`pending:${checkoutId}`, "json");
+    if (!pendingRaw) {
+      return Response.json({ error: "Checkout session expired or not found" }, { status: 404, headers: corsHeaders });
+    }
+
+    const pending = pendingRaw as { email: string; productId: string };
+
+    // Query Creem for checkout status
+    const cres = await fetch(`${CREEM_API_BASE}/checkouts?checkout_id=${checkoutId}`, {
+      headers: { "x-api-key": env.CREEM_API_KEY },
+    });
+
+    if (!cres.ok) {
+      return Response.json({ error: "Failed to verify with Creem" }, { status: 502, headers: corsHeaders });
+    }
+
+    const cdata = await cres.json() as {
+      order: { status: string; id: string };
+      product: { id: string };
+    };
+
+    // Check if order is completed/paid
+    const paidStatuses = ["completed", "paid", "active", "fulfilled"];
+    if (!paidStatuses.includes(cdata.order.status)) {
+      return Response.json({
+        verified: false,
+        status: cdata.order.status,
+        message: "Payment not yet confirmed",
+      }, { headers: corsHeaders });
+    }
+
+    // Payment confirmed — write subscription
+    const planInfo = PRODUCT_PLANS[cdata.product.id];
+    if (!planInfo) {
+      return Response.json({ error: "Unknown product" }, { status: 400, headers: corsHeaders });
+    }
+
+    const subscription: Subscription = {
+      plan: planInfo.plan,
+      status: "active",
+      checkoutId: checkoutId,
+      creemOrderId: cdata.order.id,
+      purchasedAt: new Date().toISOString(),
+    };
+
+    if (planInfo.plan === "pro_monthly") {
+      subscription.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (planInfo.plan === "pro_yearly") {
+      subscription.expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    await setSubscription(env, pending.email, subscription);
+
+    // Clean up pending record
+    await env.voiceover_kv.delete(`pending:${checkoutId}`);
+
+    return Response.json({
+      verified: true,
+      subscription,
+    }, { headers: corsHeaders });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Verification failed";
     return Response.json({ error: message }, { status: 500, headers: corsHeaders });
   }
 }
@@ -535,6 +626,12 @@ window.location.replace("/dashboard")}catch(e){window.location.replace("/dashboa
 
     if (url.pathname === "/api/checkout" && request.method === "POST") {
       return creemCheckout(request, env);
+    }
+
+    // ── Creem Verify Payment ──
+
+    if (url.pathname === "/api/verify-payment" && request.method === "GET") {
+      return verifyPayment(request, env);
     }
 
     // ── Creem Webhook ──

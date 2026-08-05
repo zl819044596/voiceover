@@ -140,14 +140,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const params = new URLSearchParams(window.location.search);
     if (params.get("from") !== "checkout") return;
 
+    const pendingCheckoutId = localStorage.getItem("pendingCheckoutId");
+
     let attempts = 0;
-    const maxAttempts = 15; // 15 * 2s = 30s
+    const maxAttempts = 15;
 
     const poll = setInterval(async () => {
       attempts++;
-      await refreshSubscription();
 
-      // Check if subscription is now active
+      // First check KV (webhook may have fired)
       const storedToken = localStorage.getItem("authToken");
       if (!storedToken) {
         clearInterval(poll);
@@ -155,26 +156,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const res = await fetch("/api/auth/me", {
+        // Check via /api/auth/me (KV-based, fast path if webhook worked)
+        const meRes = await fetch("/api/auth/me", {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
-        if (res.ok) {
-          const data = await res.json();
+        if (meRes.ok) {
+          const data = await meRes.json();
           if (data.subscription && data.subscription.status === "active") {
             setSubscription(data.subscription);
             clearInterval(poll);
-            // Clean URL
+            localStorage.removeItem("pendingCheckoutId");
             const url = new URL(window.location.href);
             url.searchParams.delete("from");
             window.history.replaceState({}, "", url.toString());
+            return;
           }
         }
-      } catch {
-        // ignore
+      } catch { /* ignore */ }
+
+      // If webhook didn't fire, try Creem API verification
+      if (pendingCheckoutId) {
+        try {
+          const verifyRes = await fetch(`/api/verify-payment?ch=${pendingCheckoutId}`);
+          if (verifyRes.ok) {
+            const vdata = await verifyRes.json();
+            if (vdata.verified && vdata.subscription) {
+              setSubscription(vdata.subscription);
+              clearInterval(poll);
+              localStorage.removeItem("pendingCheckoutId");
+              const url = new URL(window.location.href);
+              url.searchParams.delete("from");
+              window.history.replaceState({}, "", url.toString());
+              return;
+            }
+          }
+        } catch { /* ignore */ }
       }
 
       if (attempts >= maxAttempts) {
         clearInterval(poll);
+        localStorage.removeItem("pendingCheckoutId");
       }
     }, 2000);
 
