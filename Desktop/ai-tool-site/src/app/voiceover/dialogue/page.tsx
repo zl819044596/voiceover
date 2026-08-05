@@ -1,0 +1,323 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { Mic } from "lucide-react";
+import { SpeakerPanel, MAX_SPEAKERS, SPEAKER_COLORS, type Speaker } from "@/components/voiceover/speaker-panel";
+import { DialogueEditor } from "@/components/voiceover/dialogue-editor";
+import { DialoguePreview } from "@/components/voiceover/dialogue-preview";
+import { mergeAudioBlobs } from "@/lib/audio-merge";
+import { cosyvoiceVoices } from "@/config/site";
+import { incrementUsage } from "@/lib/usage-tracker";
+
+interface Progress {
+  done: number;
+  total: number;
+}
+
+interface AiDialogueLine {
+  speaker: number;
+  text: string;
+}
+
+const SAMPLE_PREVIEW_TEXT = "你好，这是我的声音预览。很高兴认识你！";
+
+function nextSpeaker(list: Speaker[]): Speaker {
+  const index = list.length;
+  const voices = cosyvoiceVoices;
+  return {
+    id: `speaker_${index + 1}`,
+    name: `Speaker ${index + 1}`,
+    voice: voices[index % voices.length].id,
+    text: "",
+    color: SPEAKER_COLORS[index % SPEAKER_COLORS.length],
+  };
+}
+
+/** Parse LLM output into dialogue lines, tolerating markdown fences & extra prose. */
+function parseDialogueScript(content: string): AiDialogueLine[] {
+  let cleaned = content.trim();
+  cleaned = cleaned.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+
+  const start = cleaned.indexOf("[");
+  const end = cleaned.lastIndexOf("]");
+  if (start !== -1 && end > start) {
+    try {
+      const parsed = JSON.parse(cleaned.slice(start, end + 1)) as unknown;
+      if (Array.isArray(parsed)) {
+        const lines = parsed
+          .filter(
+            (x): x is Record<string, unknown> =>
+              !!x && typeof x === "object" && typeof (x as Record<string, unknown>).text === "string"
+          )
+          .map((x) => ({
+            speaker: Math.max(1, Number((x as Record<string, unknown>).speaker) || 1),
+            text: String((x as Record<string, unknown>).text).trim(),
+          }))
+          .filter((x) => x.text.length > 0);
+        if (lines.length > 0) return lines;
+      }
+    } catch {
+      // fall through to line-based fallback
+    }
+  }
+
+  // Fallback: treat each non-empty line as a turn, alternating speakers
+  return cleaned
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((text, i) => ({ speaker: (i % 2) + 1, text }));
+}
+
+export default function DialoguePage() {
+  // ── State ──
+  const [speakers, setSpeakers] = useState<Speaker[]>([
+    { id: "speaker_1", name: "Speaker 1", voice: "longanmin", text: "", color: "purple" },
+    { id: "speaker_2", name: "Speaker 2", voice: "longanyue", text: "", color: "blue" },
+  ]);
+  const [topic, setTopic] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [error, setError] = useState("");
+  const [mergedAudioUrl, setMergedAudioUrl] = useState<string | null>(null);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
+  const [speed, setSpeed] = useState(1.0);
+  const [volume, setVolume] = useState(80);
+
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // ── Speaker list operations ──
+  const addSpeaker = () => {
+    setSpeakers((prev) => (prev.length >= MAX_SPEAKERS ? prev : [...prev, nextSpeaker(prev)]));
+  };
+
+  const removeSpeaker = (id: string) => {
+    setSpeakers((prev) => (prev.length <= 1 ? prev : prev.filter((s) => s.id !== id)));
+  };
+
+  const renameSpeaker = (id: string, name: string) => {
+    setSpeakers((prev) => prev.map((s) => (s.id === id ? { ...s, name } : s)));
+  };
+
+  const changeVoice = (id: string, voice: string) => {
+    setSpeakers((prev) => prev.map((s) => (s.id === id ? { ...s, voice } : s)));
+  };
+
+  const changeText = (id: string, text: string) => {
+    setSpeakers((prev) => prev.map((s) => (s.id === id ? { ...s, text } : s)));
+  };
+
+  // ── Per-speaker preview ──
+  const stopPreview = () => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+      previewAudioRef.current = null;
+    }
+    setPreviewingId(null);
+  };
+
+  const previewSpeaker = async (id: string) => {
+    if (previewingId === id) {
+      stopPreview();
+      return;
+    }
+    stopPreview();
+    setError("");
+
+    const speaker = speakers.find((s) => s.id === id);
+    if (!speaker) return;
+    setPreviewingId(id);
+
+    const text = speaker.text.trim() || SAMPLE_PREVIEW_TEXT;
+    try {
+      const res = await fetch("/api/tts/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: [text],
+          voice: speaker.voice,
+          engine: "cosyvoice-v2",
+          speed,
+          volume,
+          pitch: 1.0,
+          enableSsml: false,
+        }),
+      });
+      if (!res.ok) throw new Error("Preview failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.onended = () => {
+        setPreviewingId(null);
+        URL.revokeObjectURL(url);
+      };
+      audio.onerror = () => {
+        setPreviewingId(null);
+        setError("Could not play this voice preview.");
+        URL.revokeObjectURL(url);
+      };
+      previewAudioRef.current = audio;
+      await audio.play();
+    } catch {
+      setPreviewingId(null);
+      setError("Could not load this voice preview.");
+    }
+  };
+
+  // ── AI Auto-Generate Dialogue ──
+  const autoGenerate = async () => {
+    if (!topic.trim() || generating) return;
+    setGenerating(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/llm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "MiniMax-M2.7",
+          systemPrompt: `You are a podcast/audio drama scriptwriter. Generate a natural multi-speaker dialogue based on the given topic.
+
+Rules:
+- Write 6–12 short spoken lines (1–2 sentences each), alternating between speakers.
+- Keep the tone conversational, lively and natural for TTS synthesis.
+- Each line must be pure spoken text — no stage directions, no labels, no markdown.
+
+Output ONLY a JSON array in this exact format (no code fences, no extra text):
+[{"speaker": 1, "text": "..."}, {"speaker": 2, "text": "..."}]`,
+          userMessage: topic,
+          temperature: 0.8,
+          maxTokens: 2048,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.error || "AI generation failed");
+      }
+      const data = await res.json();
+      const lines = parseDialogueScript(data.content ?? "");
+      if (lines.length === 0) throw new Error("AI returned no dialogue. Try a different topic.");
+
+      setSpeakers((prev) => {
+        const maxSpeakerIndex = Math.max(1, ...lines.map((l) => l.speaker));
+        let list = prev.map((s) => ({ ...s, text: "" }));
+        while (list.length < Math.min(maxSpeakerIndex, MAX_SPEAKERS)) {
+          list = [...list, nextSpeaker(list)];
+        }
+        for (const line of lines) {
+          const idx = Math.min(Math.max(line.speaker - 1, 0), list.length - 1);
+          list[idx] = {
+            ...list[idx],
+            text: list[idx].text ? list[idx].text + "\n" + line.text : line.text,
+          };
+        }
+        return list;
+      });
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "AI generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // ── Generate All & Merge ──
+  const generateAll = async () => {
+    const active = speakers.filter((s) => s.text.trim());
+    if (active.length === 0 || generating) {
+      setError("Please enter some dialogue text first.");
+      return;
+    }
+    setGenerating(true);
+    setError("");
+    setMergedAudioUrl(null);
+
+    const blobs: Blob[] = [];
+    try {
+      for (let i = 0; i < active.length; i++) {
+        const speaker = active[i];
+        setProgress({ done: i, total: active.length });
+        const res = await fetch("/api/tts/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: [speaker.text],
+            voice: speaker.voice,
+            engine: "cosyvoice-v2",
+            speed,
+            volume,
+            pitch: 1.0,
+            enableSsml: false,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          throw new Error(err?.error || `TTS failed for ${speaker.name}`);
+        }
+        blobs.push(await res.blob());
+      }
+
+      setProgress({ done: active.length, total: active.length });
+      const merged = await mergeAudioBlobs(blobs);
+      setMergedAudioUrl(URL.createObjectURL(merged));
+      incrementUsage();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Generation failed");
+    } finally {
+      setGenerating(false);
+      setProgress(null);
+    }
+  };
+
+  // ── Render: three-column layout ──
+  return (
+    <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
+      {/* Page header */}
+      <div className="mb-5 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600 text-white shadow-sm">
+          <Mic className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-lg font-bold text-gray-900 sm:text-xl">多角色对白配音编辑器</h1>
+          <p className="text-xs text-gray-500 sm:text-sm">
+            Multi-Speaker Dialogue — assign a voice to each speaker, then generate &amp; merge into one audio file.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid items-start gap-4 lg:grid-cols-[16rem_minmax(0,1fr)_20rem]">
+        {/* Left: speaker list + global controls */}
+        <SpeakerPanel
+          speakers={speakers}
+          previewingId={previewingId}
+          speed={speed}
+          volume={volume}
+          onAddSpeaker={addSpeaker}
+          onRemoveSpeaker={removeSpeaker}
+          onRenameSpeaker={renameSpeaker}
+          onVoiceChange={changeVoice}
+          onPreviewSpeaker={previewSpeaker}
+          onSpeedChange={setSpeed}
+          onVolumeChange={setVolume}
+        />
+
+        {/* Center: text editors + action bar */}
+        <DialogueEditor
+          speakers={speakers}
+          topic={topic}
+          generating={generating}
+          progress={progress}
+          error={error}
+          mergedAudioUrl={mergedAudioUrl}
+          onTextChange={changeText}
+          onTopicChange={setTopic}
+          onAutoGenerate={autoGenerate}
+          onGenerateAll={generateAll}
+        />
+
+        {/* Right: chat-bubble preview */}
+        <DialoguePreview speakers={speakers} />
+      </div>
+    </div>
+  );
+}

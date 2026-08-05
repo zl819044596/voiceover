@@ -269,11 +269,13 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
   const body = await request.json() as {
     text: string[];
     voice: string;
+    engine?: string;
     speed?: number;
     volume?: number;
     pitch?: number;
     format?: string;
     enableSsml?: boolean;
+    instruct?: string;
   };
 
   if (!body.text || !Array.isArray(body.text) || body.text.length === 0) {
@@ -283,9 +285,11 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
     return Response.json({ error: "Voice is required" }, { status: 400, headers: corsHeaders });
   }
 
-  // Process text: if SSML enabled, wrap in <speak> tags
+  const engine = body.engine || "cosyvoice-v2";
+
+  // Process text: if SSML enabled, wrap in <speak> tags (only for CosyVoice)
   let processedText = body.text;
-  if (body.enableSsml) {
+  if (body.enableSsml && engine.startsWith("cosyvoice")) {
     processedText = body.text.map((t) => `<speak>${t}</speak>`);
   }
 
@@ -298,12 +302,13 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
     body: JSON.stringify({
       text: processedText,
       synthesis_param: {
-        model: "cosyvoice-v2",
+        model: engine,
         voice: body.voice,
         format: body.format || "MP3_24000HZ_MONO_128KBPS",
         volume: body.volume ?? 80,
         speechRate: body.speed ?? 1.0,
         pitchRate: body.pitch ?? 1.0,
+        ...(body.instruct ? { instruct: body.instruct } : {}),
       },
     }),
   });
@@ -323,6 +328,7 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
   const audioFile = formData.get("audio_file") as File | null;
   const promptText = formData.get("prompt_text") as string;
   const voiceName = formData.get("voice_name") as string;
+  const engine = (formData.get("engine") as string) || "cosyvoice-v2";
 
   if (!audioFile || !promptText || !voiceName) {
     return Response.json(
@@ -343,7 +349,7 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
   upstream.append(
     "tts_speaker_voice_generate_req",
     JSON.stringify({
-      model: "cosyvoice-v2",
+      model: engine,
       name: voiceName,
       prompt_text: promptText,
     })
@@ -506,6 +512,15 @@ window.location.replace("/dashboard")}catch(e){window.location.replace("/dashboa
     // TTS generate
     if (url.pathname === "/api/tts/generate" && request.method === "POST") {
       return ttsGenerate(request, env);
+    }
+
+    // List speakers (debug)
+    if (url.pathname === "/api/tts/speakers" && request.method === "GET") {
+      const res = await fetch("https://maas.wing-ray.cn/api/open-apis/projects/easyllms/voice/speakers", {
+        headers: { Authorization: `Bearer ${env.FASTMODELS_API_KEY}` },
+      });
+      const data = await res.text();
+      return new Response(data, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Voice clone

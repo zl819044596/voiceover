@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { CheckoutButton } from "@/components/checkout-button";
 import { useAuth, getPlanLabel } from "@/lib/auth-context";
-
 const plans = [
   {
     name: "Free",
