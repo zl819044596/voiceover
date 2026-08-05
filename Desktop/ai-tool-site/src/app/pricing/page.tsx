@@ -24,10 +24,10 @@ const plans = [
   },
   {
     name: "Pro Monthly",
-    price: "$14.99",
+    price: "$9.99",
     period: "per month",
     cta: "Subscribe Monthly",
-    productId: "prod_sxqwhR47PY5ff1lTqWGB6",
+    productId: "prod_50aZQktb0t0ataLsYvKDZB",
     featured: true,
     features: [
       "500 voiceovers per month",
@@ -41,11 +41,11 @@ const plans = [
   },
   {
     name: "Pro Yearly",
-    price: "$9.99",
+    price: "$7.99",
     period: "per month, billed annually",
-    subtext: "$119.88/year",
+    subtext: "$95.88/year",
     cta: "Subscribe Yearly",
-    productId: "prod_6CddbxiFgvrZ4UIR6d1wMc",
+    productId: "prod_petqehnI9GUYEsLQQBjBY",
     features: [
       "Everything in Pro Monthly",
       "2 months free",
@@ -54,11 +54,11 @@ const plans = [
   },
   {
     name: "Lifetime",
-    price: "$149",
+    price: "$99",
     period: "one-time",
     subtext: "Limited to first 500 users",
     cta: "Buy Lifetime",
-    productId: "prod_4YMEBBeAw4LXd4dPkIEN7m",
+    productId: "prod_36PxnxDybdvGok8iXqRrLq",
     features: [
       "Everything in Pro, forever",
       "No recurring payments",
@@ -112,9 +112,9 @@ export default function PricingPage() {
 
     // Pro member — check which plan this is
     const planIdMap: Record<string, string> = {
-      prod_sxqwhR47PY5ff1lTqWGB6: "pro_monthly",
-      prod_6CddbxiFgvrZ4UIR6d1wMc: "pro_yearly",
-      prod_4YMEBBeAw4LXd4dPkIEN7m: "lifetime",
+      prod_50aZQktb0t0ataLsYvKDZB: "pro_monthly",
+      prod_petqehnI9GUYEsLQQBjBY: "pro_yearly",
+      prod_36PxnxDybdvGok8iXqRrLq: "lifetime",
       prod_1Z4E00JBKlHYut6Gp1I4kG: "business",
     };
     const thisPlanName = planIdMap[plan.productId];
