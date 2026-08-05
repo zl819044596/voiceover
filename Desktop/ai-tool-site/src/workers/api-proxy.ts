@@ -115,10 +115,10 @@ interface Subscription {
 
 // Product ID to plan name mapping
 const PRODUCT_PLANS: Record<string, { plan: string; label: string }> = {
-  prod_6vhhCN7oNphRj1V2eV1byF: { plan: "pro_monthly", label: "Pro Monthly" },
-  prod_1ep5uKFxB9TlVSPCG4Iktz: { plan: "pro_yearly", label: "Pro Yearly" },
-  prod_5SC6SMZsrRNFxhkNilsMBN: { plan: "lifetime", label: "Lifetime" },
-  prod_27nNfLcuDu4np4F7yzrdEs: { plan: "business", label: "Business" },
+  prod_imbjTBoctkxvQyKOZNMMx: { plan: "pro_monthly", label: "Pro Monthly" },
+  prod_50QQGRTE0C8qa0pJLxpxCI: { plan: "pro_yearly", label: "Pro Yearly" },
+  prod_4Zlx95y7z4Y7uXx4LxpuG6: { plan: "lifetime", label: "Lifetime" },
+  prod_33Zqk6TWXknTKl4FkPEQsQ: { plan: "business", label: "Business" },
 };
 
 async function getSubscription(env: Env, email: string): Promise<Subscription | null> {
@@ -164,13 +164,8 @@ async function creemCheckout(request: Request, env: Env): Promise<Response> {
 
     const body: Record<string, unknown> = {
       product_id: productId,
-      success_url: "https://voiceover.getfitai.io/dashboard",
+      success_url: "https://voiceover.getfitai.io/dashboard?from=checkout",
     };
-
-    // If user is logged in, pass their email to Creem
-    if (email) {
-      body.customer = { email };
-    }
 
     const res = await fetch(`${CREEM_API_BASE}/checkouts`, {
       method: "POST",
@@ -209,26 +204,29 @@ async function creemWebhook(request: Request, env: Env): Promise<Response> {
       data: {
         id: string;
         status: string;
+        customer_email?: string;
+        product_id?: string;
         customer?: { email: string };
         product?: { id: string; name: string };
         checkout?: { id: string };
       };
     };
 
-    console.log("Creem webhook received:", JSON.stringify({ event: body.event, dataId: body.data?.id }));
+    console.log("Creem webhook raw:", JSON.stringify(body));
 
-    // Only handle checkout.completed events
-    if (body.event !== "checkout.completed" && body.event !== "checkout.paid") {
+    // Handle checkout completed + subscription events
+    const relevantEvents = ["checkout_completed", "checkout.paid", "subscription.created", "subscription.updated"];
+    if (!relevantEvents.includes(body.event)) {
       return Response.json({ ok: true }, { headers: corsHeaders });
     }
 
     const { data } = body;
-    if (!data.customer?.email || !data.product?.id) {
+    const email = data.customer_email || data.customer?.email;
+    const productId = data.product_id || data.product?.id;
+
+    if (!email || !productId) {
       return Response.json({ error: "Missing customer email or product id" }, { status: 400, headers: corsHeaders });
     }
-
-    const email = data.customer.email;
-    const productId = data.product.id;
     const planInfo = PRODUCT_PLANS[productId];
 
     if (!planInfo) {

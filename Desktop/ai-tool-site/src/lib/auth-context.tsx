@@ -29,6 +29,7 @@ interface AuthContextType {
   isPro: boolean;
   login: () => void;
   logout: () => void;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -38,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
   isPro: false,
   login: () => {},
   logout: () => {},
+  refreshSubscription: async () => {},
 });
 
 const PLAN_LABELS: Record<string, string> = {
@@ -116,6 +118,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   }, []);
 
+  const refreshSubscription = useCallback(async () => {
+    const storedToken = localStorage.getItem("authToken");
+    if (!storedToken) return;
+
+    try {
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${storedToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubscription(data.subscription);
+      }
+    } catch {
+      // ignore network errors during poll
+    }
+  }, []);
+
+  // Poll subscription after returning from checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("from") !== "checkout") return;
+
+    let attempts = 0;
+    const maxAttempts = 15; // 15 * 2s = 30s
+
+    const poll = setInterval(async () => {
+      attempts++;
+      await refreshSubscription();
+
+      // Check if subscription is now active
+      const storedToken = localStorage.getItem("authToken");
+      if (!storedToken) {
+        clearInterval(poll);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${storedToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.subscription && data.subscription.status === "active") {
+            setSubscription(data.subscription);
+            clearInterval(poll);
+            // Clean URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete("from");
+            window.history.replaceState({}, "", url.toString());
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(poll);
+      }
+    }, 2000);
+
+    return () => clearInterval(poll);
+  }, [refreshSubscription]);
+
   const login = useCallback(() => {
     window.location.href = "/api/auth/google";
   }, []);
@@ -129,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, subscription, isLoggedIn, isPro, login, logout }}>
+    <AuthContext.Provider value={{ user, subscription, isLoggedIn, isPro, login, logout, refreshSubscription }}>
       {children}
     </AuthContext.Provider>
   );
