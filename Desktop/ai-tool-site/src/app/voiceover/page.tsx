@@ -15,7 +15,6 @@ import {
   AlertCircle,
   Heart,
   Search,
-  Lock,
   ChevronDown,
   Volume2,
   Gauge,
@@ -61,6 +60,8 @@ const LANG_META = Object.fromEntries(
 ) as Record<LanguageCode, (typeof languageOptions)[number]>;
 
 // Two-level language groups for display
+// CosyVoice-V2 is a multilingual model — the same voice can read ANY language
+// (language is determined by the text content). So no language is locked.
 interface LangGroup {
   code: string;          // parent key
   label: string;         // display label
@@ -82,31 +83,31 @@ const LANGUAGE_GROUPS: LangGroup[] = [
     children: [{ code: "en", label: "English", flag: "🇬🇧" }],
   },
   {
-    code: "ja", label: "日本語", flag: "🇯🇵", locked: true,
+    code: "ja", label: "日本語", flag: "🇯🇵",
     children: [{ code: "ja", label: "日本語", flag: "🇯🇵" }],
   },
   {
-    code: "ko", label: "한국어", flag: "🇰🇷", locked: true,
+    code: "ko", label: "한국어", flag: "🇰🇷",
     children: [{ code: "ko", label: "한국어", flag: "🇰🇷" }],
   },
   {
-    code: "de", label: "Deutsch", flag: "🇩🇪", locked: true,
+    code: "de", label: "Deutsch", flag: "🇩🇪",
     children: [{ code: "de", label: "Deutsch", flag: "🇩🇪" }],
   },
   {
-    code: "fr", label: "Français", flag: "🇫🇷", locked: true,
+    code: "fr", label: "Français", flag: "🇫🇷",
     children: [{ code: "fr", label: "Français", flag: "🇫🇷" }],
   },
   {
-    code: "es", label: "Español", flag: "🇪🇸", locked: true,
+    code: "es", label: "Español", flag: "🇪🇸",
     children: [{ code: "es", label: "Español", flag: "🇪🇸" }],
   },
   {
-    code: "it", label: "Italiano", flag: "🇮🇹", locked: true,
+    code: "it", label: "Italiano", flag: "🇮🇹",
     children: [{ code: "it", label: "Italiano", flag: "🇮🇹" }],
   },
   {
-    code: "ru", label: "Русский", flag: "🇷🇺", locked: true,
+    code: "ru", label: "Русский", flag: "🇷🇺",
     children: [{ code: "ru", label: "Русский", flag: "🇷🇺" }],
   },
 ];
@@ -667,7 +668,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
               </span>
             </div>
             <p className="mb-2 text-[10px] leading-relaxed text-gray-400">
-              选择配音的目标语言 · 所有音色均支持多语言朗读（CosyVoice-V2）
+              选择配音的目标语言 · 同一音色可用任意语言朗读（CosyVoice-V2 多语言模型）
             </p>
             <div className="space-y-1">
               {LANGUAGE_GROUPS.map((group) => {
@@ -679,12 +680,6 @@ Output ONLY the polished script — no explanations, no markdown.`,
                     {/* Parent button */}
                     <button
                       onClick={() => {
-                        if (group.locked) {
-                          // Locked languages: guide user to clone a native voice
-                          setError("该语言暂无母语音色，克隆一个该语言的音色后即可解锁使用");
-                          openClonePanel();
-                          return;
-                        }
                         if (hasChildren) {
                           setExpandedGroup(isExpanded ? null : group.code);
                         } else {
@@ -692,13 +687,11 @@ Output ONLY the polished script — no explanations, no markdown.`,
                           setExpandedGroup(null);
                         }
                       }}
-                      title={group.locked ? "点击克隆该语言的母语音色以解锁" : group.label}
+                      title={group.label}
                       className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-2 text-xs font-medium transition-all ${
-                        group.locked
-                          ? "cursor-pointer border-gray-100 bg-gray-50 text-gray-400 hover:border-purple-300 hover:bg-purple-50"
-                          : isGroupActive
-                            ? "border-purple-600 bg-purple-50 text-purple-700"
-                            : "border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:bg-purple-50"
+                        isGroupActive
+                          ? "border-purple-600 bg-purple-50 text-purple-700"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:bg-purple-50"
                       }`}
                     >
                       <span className="flex items-center gap-1.5">
@@ -706,7 +699,6 @@ Output ONLY the polished script — no explanations, no markdown.`,
                         <span>{group.label}</span>
                       </span>
                       <span className="flex items-center gap-1">
-                        {group.locked && <Lock className="h-2.5 w-2.5" />}
                         {hasChildren && (
                           <ChevronDown
                             className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
