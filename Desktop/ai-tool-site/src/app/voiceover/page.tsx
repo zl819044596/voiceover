@@ -25,6 +25,7 @@ import {
   cosyvoiceVoices,
   languageOptions,
   freeQuota,
+  planQuotas,
   type LanguageCode,
   type Voice,
   type AgeGroup,
@@ -173,7 +174,7 @@ const TAG_LABELS: Record<string, string> = {
 };
 
 export default function VoiceoverPage() {
-  const { isLoggedIn, login } = useAuth();
+  const { isLoggedIn, login, isPro, subscription } = useAuth();
 
   // ── Voice & language ──
   const [voice, setVoice] = useState<string>(cosyvoiceVoices[0].id);
@@ -262,7 +263,12 @@ export default function VoiceoverPage() {
 
   // ── Derived state ──
   const charsUsed = estimateChars(text);
-  const isOverLimit = charsUsed > freeQuota.maxCharsPerTts;
+  // Members get the per-request cap of their plan; free users get freeQuota.
+  const maxCharsPerTts = isPro
+    ? planQuotas[subscription?.plan ?? "free"]?.maxCharsPerTts ??
+      freeQuota.maxCharsPerTts
+    : freeQuota.maxCharsPerTts;
+  const isOverLimit = charsUsed > maxCharsPerTts;
 
   const availableVoices = useMemo(
     () => [...cosyvoiceVoices, ...clonedVoices],
@@ -394,7 +400,7 @@ export default function VoiceoverPage() {
   // ── Generate ──
   const handleGenerate = async () => {
     if (!text.trim() || isOverLimit) return;
-    if (!canGenerate()) {
+    if (!canGenerate(isPro)) {
       setShowCreditsExhausted(true);
       return;
     }
@@ -963,7 +969,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                   isOverLimit ? "text-red-500 font-medium" : "text-gray-400"
                 }`}
               >
-                {charsUsed} / {freeQuota.maxCharsPerTts} chars
+                {charsUsed} / {maxCharsPerTts} chars
                 {isOverLimit && " — 超出上限!"}
               </span>
               <button
@@ -1161,7 +1167,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
           <div className="flex gap-2">
             <button
               onClick={handleGenerate}
-              disabled={!text.trim() || isOverLimit || loading || !canGenerate()}
+              disabled={!text.trim() || isOverLimit || loading || !canGenerate(isPro)}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors shadow-sm shadow-purple-200"
             >
               {loading ? (
@@ -1372,12 +1378,14 @@ Output ONLY the polished script — no explanations, no markdown.`,
             </div>
           </div>
 
-          {/* Free Tier quota */}
+          {/* Quota — members see their plan cap, free users see free tier */}
           <div className="space-y-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <div>
-              <p className="text-xs font-medium text-purple-700">Free Tier</p>
+              <p className="text-xs font-medium text-purple-700">
+                {isPro ? "Plan" : "Free Tier"}
+              </p>
               <p className="mt-1 text-xs text-purple-600">
-                {charsUsed}/{freeQuota.maxCharsPerTts} chars
+                {charsUsed}/{maxCharsPerTts} chars
                 {isOverLimit && (
                   <span className="ml-1 font-medium text-red-500">
                     — Over limit!
@@ -1385,17 +1393,19 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 )}
               </p>
             </div>
-            <div>
-              <p className="text-xs font-medium text-purple-700">Credits Today</p>
-              <p className="mt-1 text-xs text-purple-600">
-                {getTodayUsed()} / {getTotalAvailable()} used
-                {getRemainingToday() <= 1 && (
-                  <span className="ml-1 font-medium text-red-500">
-                    — Low credits!
-                  </span>
-                )}
-              </p>
-            </div>
+            {!isPro && (
+              <div>
+                <p className="text-xs font-medium text-purple-700">Credits Today</p>
+                <p className="mt-1 text-xs text-purple-600">
+                  {getTodayUsed()} / {getTotalAvailable()} used
+                  {getRemainingToday() <= 1 && (
+                    <span className="ml-1 font-medium text-red-500">
+                      — Low credits!
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
             <ShareBonus />
           </div>
         </aside>

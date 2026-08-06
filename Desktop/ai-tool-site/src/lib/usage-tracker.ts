@@ -48,7 +48,9 @@ export function getRemainingToday(): number {
   return getTotalAvailable() - getDailyUsage();
 }
 
-export function canGenerate(): boolean {
+export function canGenerate(isPro = false): boolean {
+  // Paid members are not rate-limited by the daily free counter.
+  if (isPro) return true;
   return getRemainingToday() > 0;
 }
 
