@@ -450,25 +450,66 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  const upstream = new FormData();
-  upstream.append("audio_file", audioFile);
-  upstream.append(
-    "tts_speaker_voice_generate_req",
-    JSON.stringify({
-      model: engine,
-      name: voiceName,
-      prompt_text: promptText,
-    })
+  // 手动构造 multipart body —— wingray 官方规范要求
+  // tts_speaker_voice_generate_req 字段必须带 Content-Type: application/json
+  // （FormData 裸 append 是 text/plain，会被上游返回 500 "Server is busy" 拒绝）
+  const boundary = `----FormBoundary${crypto.randomUUID().replace(/-/g, "")}`;
+  const audioBytes = new Uint8Array(await audioFile.arrayBuffer());
+  const encoder = new TextEncoder();
+  const chunks: Uint8Array[] = [];
+
+  // 字段 1: audio_file（文件）
+  chunks.push(
+    encoder.encode(
+      `--${boundary}\r\n` +
+        `Content-Disposition: form-data; name="audio_file"; filename="voice.wav"\r\n` +
+        `Content-Type: ${audioFile.type || "audio/wav"}\r\n\r\n`
+    )
   );
+  chunks.push(audioBytes);
+  chunks.push(encoder.encode(`\r\n`));
+
+  // 字段 2: tts_speaker_voice_generate_req（JSON，官方要求 application/json）
+  chunks.push(
+    encoder.encode(
+      `--${boundary}\r\n` +
+        `Content-Disposition: form-data; name="tts_speaker_voice_generate_req"\r\n` +
+        `Content-Type: application/json\r\n\r\n` +
+        JSON.stringify({
+          model: engine,
+          name: voiceName,
+          prompt_text: promptText,
+        })
+    )
+  );
+  chunks.push(encoder.encode(`\r\n--${boundary}--\r\n`));
+
+  const upstreamBody = new Blob(chunks, {
+    type: `multipart/form-data; boundary=${boundary}`,
+  });
 
   const res = await fetch(CLONE_URL, {
     method: "POST",
-    headers: { Authorization: `Bearer ${env.FASTMODELS_API_KEY}` },
-    body: upstream,
+    headers: {
+      Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body: upstreamBody,
   });
 
   if (!res.ok) {
-    return Response.json({ error: `Voice clone failed: ${res.status}` }, { status: 500, headers: corsHeaders });
+    // 透传上游错误消息，便于诊断
+    let upstreamMsg = "";
+    try {
+      const j = (await res.json()) as { message?: string };
+      upstreamMsg = j.message || "";
+    } catch {
+      // ignore parse error
+    }
+    return Response.json(
+      { error: `Voice clone failed: ${res.status}${upstreamMsg ? ` (${upstreamMsg})` : ""}` },
+      { status: 500, headers: corsHeaders }
+    );
   }
 
   return Response.json({ voiceId: voiceName }, { headers: corsHeaders });
