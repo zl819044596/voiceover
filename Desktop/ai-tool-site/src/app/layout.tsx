@@ -27,14 +27,19 @@ export const metadata: Metadata = {
     template: "%s | Voiceover AI",
   },
   description:
-    "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed. 17 natural voices, voice cloning, and AI script polish.",
+    "Turn text into natural AI voiceovers and multi-speaker dialogues for TikTok, Reels, and YouTube Shorts. 17 natural voices, voice cloning, and AI script polish. Free — no signup needed.",
   keywords: [
     "AI voiceover",
     "text to speech",
+    "multi-speaker dialogue",
+    "multi-speaker text to speech",
+    "voice cloning",
+    "AI配音",
+    "中文配音",
+    "多角色对白",
     "TikTok voiceover",
     "AI narrator",
     "free TTS",
-    "voice cloning",
     "video voiceover generator",
   ],
   alternates: {
@@ -45,7 +50,7 @@ export const metadata: Metadata = {
     siteName: "Voiceover AI",
     title: "Voiceover AI — Free AI Voiceover for Short Videos",
     description:
-      "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
+      "Turn text into natural AI voiceovers and multi-speaker dialogues for TikTok, Reels, and YouTube Shorts. 17 natural voices, voice cloning. No signup needed.",
     url: SITE_URL,
     images: [{
       url: `${SITE_URL}/og-image.png`,
@@ -58,7 +63,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Voiceover AI — Free AI Voiceover for Short Videos",
     description:
-      "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
+      "Turn text into natural AI voiceovers and multi-speaker dialogues for TikTok, Reels, and YouTube Shorts. No signup needed.",
     images: [`${SITE_URL}/og-image.png`],
   },
 };
@@ -70,7 +75,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
@@ -115,6 +120,7 @@ export default function RootLayout({
             "@type": "Offer",
             price: "0",
             priceCurrency: "USD",
+            url: `${SITE_URL}/pricing`,
           },
           featureList: [
             "17 natural voices",
