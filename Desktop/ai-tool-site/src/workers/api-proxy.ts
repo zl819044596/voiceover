@@ -116,10 +116,10 @@ interface Subscription {
 
 // Product ID to plan name mapping
 const PRODUCT_PLANS: Record<string, { plan: string; label: string }> = {
-  prod_imbjTBoctkxvQyKOZNMMx: { plan: "pro_monthly", label: "Pro Monthly" },
-  prod_50QQGRTE0C8qa0pJLxpxCI: { plan: "pro_yearly", label: "Pro Yearly" },
-  prod_4Zlx95y7z4Y7uXx4LxpuG6: { plan: "lifetime", label: "Lifetime" },
-  prod_33Zqk6TWXknTKl4FkPEQsQ: { plan: "business", label: "Business" },
+  prod_6i35t3PDKABIwpugKXq9IV: { plan: "pro_monthly", label: "Pro Monthly" },
+  prod_2XbnoPWpc9Gfq7rFTR6qTW: { plan: "pro_yearly", label: "Pro Yearly" },
+  prod_5SC6SMZsrRNFxhkNilsMBN: { plan: "lifetime", label: "Lifetime" },
+  prod_1Z4E00JBKlHYut6Gp1I4kG: { plan: "business", label: "Business" },
 };
 
 async function getSubscription(env: Env, email: string): Promise<Subscription | null> {
@@ -135,7 +135,7 @@ async function setSubscription(env: Env, email: string, sub: Subscription): Prom
 
 // --- Creem Checkout ---
 
-const CREEM_API_BASE = "https://test-api.creem.io/v1";
+const CREEM_API_BASE = "https://api.creem.io/v1";
 
 async function creemCheckout(request: Request, env: Env): Promise<Response> {
   try {
@@ -231,22 +231,28 @@ async function verifyPayment(request: Request, env: Env): Promise<Response> {
     }
 
     const cdata = await cres.json() as {
-      order: { status: string; id: string };
-      product: { id: string };
+      status?: string;
+      product?: { id: string } | string;
+      order?: { status: string; id: string };
     };
+
+    // Determine payment status and order ID
+    const orderStatus = cdata.order?.status || cdata.status || "";
+    const orderId = cdata.order?.id || "";
+    const productId = typeof cdata.product === "string" ? cdata.product : cdata.product?.id || "";
 
     // Check if order is completed/paid
     const paidStatuses = ["completed", "paid", "active", "fulfilled"];
-    if (!paidStatuses.includes(cdata.order.status)) {
+    if (!paidStatuses.includes(orderStatus)) {
       return Response.json({
         verified: false,
-        status: cdata.order.status,
+        status: orderStatus,
         message: "Payment not yet confirmed",
       }, { headers: corsHeaders });
     }
 
     // Payment confirmed — write subscription
-    const planInfo = PRODUCT_PLANS[cdata.product.id];
+    const planInfo = PRODUCT_PLANS[productId];
     if (!planInfo) {
       return Response.json({ error: "Unknown product" }, { status: 400, headers: corsHeaders });
     }
@@ -255,7 +261,7 @@ async function verifyPayment(request: Request, env: Env): Promise<Response> {
       plan: planInfo.plan,
       status: "active",
       checkoutId: checkoutId,
-      creemOrderId: cdata.order.id,
+      creemOrderId: orderId,
       purchasedAt: new Date().toISOString(),
     };
 
@@ -413,6 +419,17 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
 }
 
 async function ttsClone(request: Request, env: Env): Promise<Response> {
+  // Voice cloning requires login (server-side enforcement)
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return Response.json({ error: "请先登录后再使用克隆功能" }, { status: 401, headers: corsHeaders });
+  }
+  const token = authHeader.slice(7);
+  const payload = await verifyJwt(token, env.JWT_SECRET);
+  if (!payload) {
+    return Response.json({ error: "登录已过期，请重新登录" }, { status: 401, headers: corsHeaders });
+  }
+
   const formData = await request.formData();
   const audioFile = formData.get("audio_file") as File | null;
   const promptText = formData.get("prompt_text") as string;

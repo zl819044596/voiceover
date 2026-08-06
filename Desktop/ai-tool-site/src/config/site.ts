@@ -135,7 +135,7 @@ export const allVoices: Voice[] = [...cosyvoiceVoices];
 
 export const freeQuota = {
   dailyTtsCount: 3,
-  maxCharsPerTts: 10000,
+  maxCharsPerTts: 1000,
 } as const;
 
 export const shareBonus = {
@@ -144,10 +144,17 @@ export const shareBonus = {
   totalBonusCap: 30,
 } as const;
 
-export const proQuota = {
-  monthlyCount: 500,
-  maxCharsPerTts: 10000,
-} as const;
+/** Per-plan quotas (chars per month + per-request cap) */
+export const planQuotas: Record<
+  string,
+  { label: string; monthlyChars: number; maxCharsPerTts: number; limit?: number }
+> = {
+  free: { label: "Free", monthlyChars: 10000, maxCharsPerTts: 1000 },
+  pro_monthly: { label: "Pro Monthly", monthlyChars: 100000, maxCharsPerTts: 10000 },
+  pro_yearly: { label: "Pro Yearly", monthlyChars: 250000, maxCharsPerTts: 10000 },
+  lifetime: { label: "Lifetime", monthlyChars: 100000, maxCharsPerTts: 10000, limit: 500 },
+  business: { label: "Business", monthlyChars: 1000000, maxCharsPerTts: 10000 },
+};
 
 export const shareConfig = {
   bonusCreditsPerShare: 3,

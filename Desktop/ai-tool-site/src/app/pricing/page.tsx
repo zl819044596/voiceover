@@ -14,38 +14,36 @@ const plans = [
     productId: null,
     features: [
       "Unlimited Projects",
-      "1,000 Characters per Month",
-      "4K Audio Quality",
+      "10,000 Characters per Month",
+      "1,000 Characters per Request",
       "MP3 Downloading",
       "No watermark",
     ],
   },
   {
     name: "Pro Monthly",
-    price: "$14.99",
+    price: "$9.99",
     period: "per month",
     cta: "Subscribe Monthly",
-    productId: "prod_imbjTBoctkxvQyKOZNMMx",
+    productId: "prod_6i35t3PDKABIwpugKXq9IV",
     featured: true,
     features: [
       "Unlimited Projects",
-      "10,000 Characters per Month",
-      "8K Audio Quality",
+      "100,000 Characters per Month",
       "MP3 Downloading",
       "No watermark",
     ],
   },
   {
     name: "Pro Yearly",
-    price: "$9.99",
+    price: "$7.99",
     period: "per month, billed annually",
-    subtext: "$119.88/year",
+    subtext: "$95.88/year",
     cta: "Subscribe Yearly",
-    productId: "prod_50QQGRTE0C8qa0pJLxpxCI",
+    productId: "prod_2XbnoPWpc9Gfq7rFTR6qTW",
     features: [
       "Unlimited Projects",
-      "20,000 Characters per Month",
-      "16K Audio Quality",
+      "250,000 Characters per Month",
       "MP3 Downloading",
       "No watermark",
     ],
@@ -55,13 +53,13 @@ const plans = [
     price: "$149",
     period: "one-time",
     cta: "Buy Lifetime",
-    productId: "prod_4Zlx95y7z4Y7uXx4LxpuG6",
+    productId: "prod_5SC6SMZsrRNFxhkNilsMBN",
     features: [
       "Unlimited Projects",
       "100,000 Characters per Month",
-      "24K Audio Quality",
       "MP3 Downloading",
       "No watermark",
+      "Limited to 500 seats",
     ],
   },
   {
@@ -69,15 +67,14 @@ const plans = [
     price: "$49",
     period: "per month",
     cta: "Subscribe Business",
-    productId: "prod_33Zqk6TWXknTKl4FkPEQsQ",
+    productId: "prod_1Z4E00JBKlHYut6Gp1I4kG",
     features: [
       "Unlimited Projects",
-      "200,000 Characters per Month",
-      "32K Audio Quality",
+      "1,000,000 Characters per Month",
       "MP3 Downloading",
       "No watermark",
-      "Custom support",
-      "API integration",
+      "API Access",
+      "Custom Support",
     ],
   },
 ];
@@ -112,10 +109,10 @@ export default function PricingPage() {
 
     // Pro member — check which plan this is
     const planIdMap: Record<string, string> = {
-      prod_imbjTBoctkxvQyKOZNMMx: "pro_monthly",
-      prod_50QQGRTE0C8qa0pJLxpxCI: "pro_yearly",
-      prod_4Zlx95y7z4Y7uXx4LxpuG6: "lifetime",
-      prod_33Zqk6TWXknTKl4FkPEQsQ: "business",
+      prod_6i35t3PDKABIwpugKXq9IV: "pro_monthly",
+      prod_2XbnoPWpc9Gfq7rFTR6qTW: "pro_yearly",
+      prod_5SC6SMZsrRNFxhkNilsMBN: "lifetime",
+      prod_1Z4E00JBKlHYut6Gp1I4kG: "business",
     };
     const thisPlanName = planIdMap[plan.productId];
 
@@ -151,7 +148,7 @@ export default function PricingPage() {
         </p>
       </div>
 
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {plans.map((plan) => (
           <div
             key={plan.name}

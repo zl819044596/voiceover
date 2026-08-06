@@ -38,6 +38,7 @@ import {
   getTodayUsed,
 } from "@/lib/usage-tracker";
 import { ShareBonus } from "@/components/share-bonus";
+import { useAuth } from "@/lib/auth-context";
 
 const CLONED_VOICES_KEY = "voiceover-cloned-voices";
 const FAVORITES_KEY = "voiceover-favorites";
@@ -172,6 +173,8 @@ const TAG_LABELS: Record<string, string> = {
 };
 
 export default function VoiceoverPage() {
+  const { isLoggedIn, login } = useAuth();
+
   // ── Voice & language ──
   const [voice, setVoice] = useState<string>(cosyvoiceVoices[0].id);
   const [selectedLang, setSelectedLang] = useState<LanguageCode>("zh");
@@ -472,6 +475,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
 
   // ── Clone panel helpers ──
   const openClonePanel = () => {
+    if (!isLoggedIn) {
+      login();
+      return;
+    }
     setCloneOpen(true);
     setTimeout(
       () =>
@@ -518,6 +525,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
   };
 
   const handleCloneSubmit = async () => {
+    if (!isLoggedIn) {
+      login();
+      return;
+    }
     if (!cloneFile) {
       setCloneError("请先上传音频文件");
       return;
@@ -547,6 +558,9 @@ Output ONLY the polished script — no explanations, no markdown.`,
 
       const res = await fetch("/api/tts/clone", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+        },
         body: fd,
       });
 
@@ -609,7 +623,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
         <div>
           <h1 className="text-2xl font-bold text-gray-900">AI Voiceover Studio</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Turn text into natural voiceover audio. Free tier: {freeQuota.maxCharsPerTts} chars, {freeQuota.dailyTtsCount}x/day.
+            Turn text into natural voiceover audio. Free tier: 10,000 chars/month, 1,000 chars/request.
           </p>
         </div>
         <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-600 ring-1 ring-purple-200">
@@ -994,7 +1008,13 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 🔬 克隆声音 · Voice Cloning
               </h3>
               <button
-                onClick={() => setCloneOpen(!cloneOpen)}
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    login();
+                    return;
+                  }
+                  setCloneOpen(!cloneOpen);
+                }}
                 className="text-xs text-gray-400 hover:text-gray-600"
               >
                 {cloneOpen ? "收起 ▲" : "展开 ▼"}
