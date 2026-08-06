@@ -375,8 +375,13 @@ export default function VoiceoverPage() {
           pitch: Math.pow(2, pitch / 12),
           enableSsml: false,
         }),
+        // wingray can hang for a long time; don't let the preview spin forever
+        signal: AbortSignal.timeout(25000),
       });
-      if (!res.ok) throw new Error("Preview failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.error || "Preview failed");
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
@@ -390,10 +395,24 @@ export default function VoiceoverPage() {
         URL.revokeObjectURL(url);
       };
       previewAudioRef.current = audio;
-      await audio.play();
+      try {
+        await audio.play();
+      } catch (playErr) {
+        // Autoplay policy: if the TTS round-trip outlasts the user-gesture
+        // activation window, Chrome rejects play(). Resume on next tap.
+        if (playErr instanceof DOMException && playErr.name === "NotAllowedError") {
+          const resume = () => {
+            audio.play().catch(() => {});
+            window.removeEventListener("pointerdown", resume);
+          };
+          window.addEventListener("pointerdown", resume);
+          return;
+        }
+        throw playErr;
+      }
     } catch {
       setPreviewingId(null);
-      setError("Could not load this voice preview.");
+      setError("Could not load this voice preview. Please try again.");
     }
   };
 
