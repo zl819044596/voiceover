@@ -639,17 +639,30 @@ Output ONLY the polished script — no explanations, no markdown.`,
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
-      {/* Header */}
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Voiceover Studio</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Turn text into natural voiceover audio. Free tier: 10,000 chars/month, 1,000 chars/request.
-          </p>
+      {/* Header banner */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-500 p-6 text-white shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20">
+            <Mic className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold sm:text-2xl">AI Voiceover Studio</h1>
+            <p className="mt-1 text-sm text-purple-100">
+              Turn text into natural voiceover audio. Free tier: 10,000 chars/month, 1,000 chars/request.
+            </p>
+          </div>
         </div>
-        <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-600 ring-1 ring-purple-200">
-          CosyVoice-V2 · Instruct Mode
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+            17 Voices · CosyVoice-V2
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+            9 Languages
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+            MP3 Download
+          </span>
+        </div>
       </div>
 
       <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-[16rem_minmax(0,1fr)_20rem]">

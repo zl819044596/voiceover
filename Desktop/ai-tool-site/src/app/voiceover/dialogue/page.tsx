@@ -384,16 +384,29 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
   // ── Render: three-column layout ──
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
-      {/* Page header */}
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600 text-white shadow-sm">
-          <Mic className="h-5 w-5" />
+      {/* Page header banner */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-500 p-5 text-white shadow-sm sm:p-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20">
+            <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold sm:text-xl">多角色对白配音编辑器</h1>
+            <p className="mt-0.5 text-xs text-purple-100 sm:text-sm">
+              Multi-Speaker Dialogue — assign a voice to each speaker, then generate &amp; merge into one audio file.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-lg font-bold text-gray-900 sm:text-xl">多角色对白配音编辑器</h1>
-          <p className="text-xs text-gray-500 sm:text-sm">
-            Multi-Speaker Dialogue — assign a voice to each speaker, then generate &amp; merge into one audio file.
-          </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+            Multi-Speaker
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+            AI Script Generation
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
+            One Merged MP3
+          </span>
         </div>
       </div>
 
