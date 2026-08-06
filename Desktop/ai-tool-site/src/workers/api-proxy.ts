@@ -488,14 +488,31 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
     type: `multipart/form-data; boundary=${boundary}`,
   });
 
-  const res = await fetch(CLONE_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
-      "Content-Type": `multipart/form-data; boundary=${boundary}`,
-    },
-    body: upstreamBody,
-  });
+  let res: Response;
+  try {
+    res = await fetch(CLONE_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      },
+      body: upstreamBody,
+      // 上游 upload 服务可能挂起（历史: >240s 无响应导致 CF 524）。
+      // 25s 超时主动返回友好错误，避免用户等 30s+ 收到 524。
+      signal: AbortSignal.timeout(25_000),
+    });
+  } catch (e) {
+    // 超时（AbortSignal.timeout）或网络错误——上游服务不可用
+    const isTimeout = e instanceof Error && e.name === "AbortError";
+    return Response.json(
+      {
+        error: isTimeout
+          ? "克隆服务繁忙，请稍后重试（上游处理超时）"
+          : `克隆失败: ${e instanceof Error ? e.message : "未知错误"}`,
+      },
+      { status: 504, headers: corsHeaders }
+    );
+  }
 
   if (!res.ok) {
     // 透传上游错误消息，便于诊断
