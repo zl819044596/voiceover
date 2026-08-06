@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Voiceover AI Terms of Service — your agreement for using our AI-powered voiceover and PDF summarizer service.",
+  description: "Voiceover AI Terms of Service — your agreement for using our AI-powered voiceover service.",
   alternates: { canonical: "https://voiceover.getfitai.io/terms" },
 };
 
@@ -24,8 +24,9 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-gray-900">2. Description of Service</h2>
           <p className="mt-2">
-            Voiceover AI provides AI-powered text-to-speech voiceover generation and PDF
-            document analysis tools. The Service is provided on an &ldquo;as is&rdquo; basis.
+            Voiceover AI provides AI-powered text-to-speech voiceover generation with
+            AI script polish, voice cloning, and multi-language support. The Service is
+            provided on an &ldquo;as is&rdquo; basis.
           </p>
         </section>
 

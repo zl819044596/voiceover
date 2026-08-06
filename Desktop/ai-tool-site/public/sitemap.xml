@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://voiceover-ai.pages.dev/</loc><priority>1.0</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/voiceover</loc><priority>0.9</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/pdf</loc><priority>0.8</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/pricing</loc><priority>0.8</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/blog</loc><priority>0.7</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/login</loc><priority>0.5</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/terms</loc><priority>0.3</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/privacy</loc><priority>0.3</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/gdpr</loc><priority>0.3</priority></url>
-  <url><loc>https://voiceover-ai.pages.dev/dashboard</loc><priority>0.4</priority></url>
+  <url><loc>https://voiceover.getfitai.io/</loc><priority>1.0</priority></url>
+  <url><loc>https://voiceover.getfitai.io/voiceover</loc><priority>0.9</priority></url>
+  <url><loc>https://voiceover.getfitai.io/voiceover/dialogue</loc><priority>0.8</priority></url>
+  <url><loc>https://voiceover.getfitai.io/pricing</loc><priority>0.8</priority></url>
+  <url><loc>https://voiceover.getfitai.io/blog</loc><priority>0.7</priority></url>
+  <url><loc>https://voiceover.getfitai.io/blog/viral-tiktok-voiceovers-ai</loc><priority>0.6</priority></url>
+  <url><loc>https://voiceover.getfitai.io/blog/tts-vs-voice-cloning</loc><priority>0.6</priority></url>
+  <url><loc>https://voiceover.getfitai.io/blog/short-video-script-tips</loc><priority>0.6</priority></url>
+  <url><loc>https://voiceover.getfitai.io/blog/privacy-first-ai-tools</loc><priority>0.6</priority></url>
+  <url><loc>https://voiceover.getfitai.io/login</loc><priority>0.5</priority></url>
+  <url><loc>https://voiceover.getfitai.io/dashboard</loc><priority>0.4</priority></url>
+  <url><loc>https://voiceover.getfitai.io/terms</loc><priority>0.3</priority></url>
+  <url><loc>https://voiceover.getfitai.io/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://voiceover.getfitai.io/gdpr</loc><priority>0.3</priority></url>
 </urlset>

@@ -39,7 +39,7 @@ export default function HomePage() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               icon={<Mic className="h-6 w-6" />}
-              title="16+ Natural Voices"
+              title="17 Natural Voices"
               description="Choose from male, female, and specialty voices. Adjust speed and volume to match your video style perfectly."
             />
             <FeatureCard

@@ -4,7 +4,7 @@ export const siteConfig = {
   description:
     "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
   url: "https://voiceover.getfitai.io",
-  ogImage: "/og-image.svg",
+  ogImage: "/og-image.png",
 };
 
 export const apiConfig = {
@@ -22,7 +22,7 @@ export const models = {
   tts: "cosyvoice-v2",          // Voice synthesis engine (CosyVoice-V2)
   polish: "MiniMax-M2.7",       // Script brain — copywriting & polishing
   llmFast: "DeepSeek-V4-Flash", // General purpose (fallback)
-  llmPro: "DeepSeek-V4-Pro",    // Long document analysis (PDF)
+  llmPro: "DeepSeek-V4-Pro",    // Long-form content analysis
   translate: "qwen-mt-turbo",   // Translation specialist
 };
 

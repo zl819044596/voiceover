@@ -18,24 +18,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = siteConfig.url;
+
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Voiceover AI — Free AI Voiceover for Short Videos",
     template: "%s | Voiceover AI",
   },
   description:
-    "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed. Also: private PDF summarizer, 100% browser-based.",
+    "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed. 17 natural voices, voice cloning, and AI script polish.",
   keywords: [
     "AI voiceover",
     "text to speech",
     "TikTok voiceover",
     "AI narrator",
     "free TTS",
-    "PDF summarizer",
+    "voice cloning",
+    "video voiceover generator",
   ],
   alternates: {
-    canonical: "https://voiceover.getfitai.io",
+    canonical: SITE_URL,
   },
   openGraph: {
     type: "website",
@@ -43,13 +46,20 @@ export const metadata: Metadata = {
     title: "Voiceover AI — Free AI Voiceover for Short Videos",
     description:
       "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
-    url: "https://voiceover.getfitai.io",
+    url: SITE_URL,
     images: [{
-      url: "https://voiceover.getfitai.io/og-image.svg",
+      url: `${SITE_URL}/og-image.png`,
       width: 1200,
       height: 630,
       alt: "Voiceover AI — Free AI Voiceover for Short Videos",
     }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Voiceover AI — Free AI Voiceover for Short Videos",
+    description:
+      "Turn text into natural AI voiceovers for TikTok, Reels, and YouTube Shorts. No signup needed.",
+    images: [`${SITE_URL}/og-image.png`],
   },
 };
 
@@ -81,20 +91,38 @@ export default function RootLayout({
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "Voiceover AI",
-          url: "https://voiceover.getfitai.io",
-          description: "Free AI voiceover generator for short videos. Text-to-speech, voice cloning, and private PDF summarizer.",
+          url: SITE_URL,
+          logo: `${SITE_URL}/og-image.png`,
+          description: "Free AI voiceover generator for short videos. Text-to-speech, voice cloning, and AI script polish.",
           foundingDate: "2026",
         }} />
         <JsonLd data={{
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: "Voiceover AI",
-          url: "https://voiceover.getfitai.io",
-          potentialAction: {
-            "@type": "SearchAction",
-            target: "https://voiceover.getfitai.io/search?q={search_term_string}",
-            "query-input": "required name=search_term_string",
+          url: SITE_URL,
+        }} />
+        <JsonLd data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Voiceover AI",
+          url: SITE_URL,
+          description:
+            "Free AI voiceover generator for short videos. Turn text into natural voiceovers for TikTok, Reels, and YouTube Shorts.",
+          applicationCategory: "MultimediaApplication",
+          operatingSystem: "Web",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
           },
+          featureList: [
+            "17 natural voices",
+            "AI script polish",
+            "Voice cloning",
+            "Multi-language text-to-speech",
+            "MP3 download",
+          ],
         }} />
         <Header />
         <main className="flex-1">{children}</main>

@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: BASE_URL, priority: 1.0 },
     { url: `${BASE_URL}/voiceover`, priority: 0.9 },
+    { url: `${BASE_URL}/voiceover/dialogue`, priority: 0.8 },
     { url: `${BASE_URL}/pricing`, priority: 0.8 },
     { url: `${BASE_URL}/blog`, priority: 0.7 },
     { url: `${BASE_URL}/blog/short-video-script-tips`, priority: 0.6 },

@@ -22,23 +22,12 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-2">
             <strong>Usage Data:</strong> We collect anonymous usage data including voiceover
-            character counts, PDF processing counts, and feature usage statistics to
-            improve the Service.
+            character counts and feature usage statistics to improve the Service.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900">2. PDF Privacy</h2>
-          <p className="mt-2">
-            Our PDF summarizer processes documents locally in your browser. PDF files
-            are <strong>never uploaded</strong> to our servers. When you use Pro deep
-            analysis, only the extracted text (not the original PDF) is sent to our AI
-            provider for processing, and is not stored after processing completes.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900">3. Voiceover Data</h2>
+          <h2 className="text-lg font-semibold text-gray-900">2. Voiceover Data</h2>
           <p className="mt-2">
             Text you submit for voiceover generation is sent to our AI provider for
             speech synthesis. Audio files are temporarily stored for download and
@@ -47,7 +36,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900">4. Cookies</h2>
+          <h2 className="text-lg font-semibold text-gray-900">3. Cookies</h2>
           <p className="mt-2">
             We use essential cookies for authentication and session management. We do
             not use tracking cookies or third-party analytics that collect personal data.
@@ -55,7 +44,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900">5. Your Rights (GDPR)</h2>
+          <h2 className="text-lg font-semibold text-gray-900">4. Your Rights (GDPR)</h2>
           <p className="mt-2">
             You have the right to access, correct, or delete your personal data. See our
             GDPR page for details, or contact us at{" "}
@@ -67,7 +56,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900">6. Contact</h2>
+          <h2 className="text-lg font-semibold text-gray-900">5. Contact</h2>
           <p className="mt-2">
             For privacy-related inquiries:{" "}
             <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
