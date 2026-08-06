@@ -96,12 +96,14 @@ export async function mergeAudioBlobs(blobs: Blob[]): Promise<Blob> {
     gapSamples * Math.max(0, buffers.length - 1);
 
   const offline = new OfflineAudioContext(channels, totalSamples, sampleRate);
+  // NOTE: AudioBufferSourceNode.start() 的第一个参数是「秒」，不是帧数。
+  // 之前误把帧数 offset 直接传入，导致第二段以后的音频被排到渲染范围外而丢失。
   let offset = 0;
   for (const buffer of buffers) {
     const source = offline.createBufferSource();
     source.buffer = buffer;
     source.connect(offline.destination);
-    source.start(offset);
+    source.start(offset / sampleRate);
     offset += buffer.length + gapSamples;
   }
 
