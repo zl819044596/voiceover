@@ -25,6 +25,7 @@ interface DialogueEditorProps {
   progress: { done: number; total: number } | null;
   error: string;
   mergedAudioUrl: string | null;
+  speakerAudios?: { id: string; name: string; url: string }[] | null;
   onTextChange: (id: string, text: string) => void;
   onTopicChange: (topic: string) => void;
   onAutoGenerate: () => void;
@@ -39,6 +40,7 @@ export function DialogueEditor({
   progress,
   error,
   mergedAudioUrl,
+  speakerAudios = null,
   onTextChange,
   onTopicChange,
   onAutoGenerate,
@@ -186,9 +188,40 @@ export function DialogueEditor({
           </div>
         )}
 
+        {/* Per-speaker results */}
+        {speakerAudios && speakerAudios.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-purple-600">
+              单角色语音（可分别试听 / 下载）
+            </p>
+            {speakerAudios.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col gap-2 rounded-lg border border-purple-100 bg-white p-3 sm:flex-row sm:items-center"
+              >
+                <span className="shrink-0 text-xs font-semibold text-gray-700">
+                  {item.name}
+                </span>
+                <audio controls src={item.url} className="h-9 min-w-0 flex-1" />
+                <a
+                  href={item.url}
+                  download={`${item.name.replace(/\s+/g, "-")}.mp3`}
+                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-100"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  下载 MP3
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Merged result */}
         {mergedAudioUrl && (
           <div className="mt-3 flex flex-col gap-2 rounded-lg border border-purple-100 bg-purple-50/50 p-3 sm:flex-row sm:items-center">
+            <span className="shrink-0 text-xs font-semibold text-purple-700">
+              合并完整版
+            </span>
             <audio controls src={mergedAudioUrl} className="h-10 min-w-0 flex-1" />
             <a
               href={mergedAudioUrl}

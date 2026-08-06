@@ -83,6 +83,9 @@ export default function DialoguePage() {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [error, setError] = useState("");
   const [mergedAudioUrl, setMergedAudioUrl] = useState<string | null>(null);
+  const [speakerAudios, setSpeakerAudios] = useState<
+    { id: string; name: string; url: string }[] | null
+  >(null);
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [speed, setSpeed] = useState(1.0);
   const [pitch, setPitch] = useState(0); // semitones, -20 .. +20
@@ -291,8 +294,10 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
     setGenerating(true);
     setError("");
     setMergedAudioUrl(null);
+    setSpeakerAudios(null);
 
     const blobs: Blob[] = [];
+    const audios: { id: string; name: string; url: string }[] = [];
     try {
       for (let i = 0; i < active.length; i++) {
         const speaker = active[i];
@@ -315,10 +320,17 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
           const err = await res.json().catch(() => null);
           throw new Error(err?.error || `TTS failed for ${speaker.name}`);
         }
-        blobs.push(await res.blob());
+        const blob = await res.blob();
+        blobs.push(blob);
+        audios.push({
+          id: speaker.id,
+          name: speaker.name || `Speaker ${i + 1}`,
+          url: URL.createObjectURL(blob),
+        });
       }
 
       setProgress({ done: active.length, total: active.length });
+      setSpeakerAudios(audios);
       const merged = await mergeAudioBlobs(blobs);
       setMergedAudioUrl(URL.createObjectURL(merged));
       incrementUsage();
@@ -378,6 +390,7 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
           progress={progress}
           error={error}
           mergedAudioUrl={mergedAudioUrl}
+          speakerAudios={speakerAudios}
           onTextChange={changeText}
           onTopicChange={setTopic}
           onAutoGenerate={autoGenerate}
