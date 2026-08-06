@@ -456,7 +456,7 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
   const boundary = `----FormBoundary${crypto.randomUUID().replace(/-/g, "")}`;
   const audioBytes = new Uint8Array(await audioFile.arrayBuffer());
   const encoder = new TextEncoder();
-  const chunks: Uint8Array[] = [];
+  const chunks: BlobPart[] = [];
 
   // 字段 1: audio_file（文件）
   chunks.push(

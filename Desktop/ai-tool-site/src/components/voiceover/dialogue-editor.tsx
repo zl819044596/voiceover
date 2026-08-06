@@ -11,7 +11,7 @@ import {
   SPEAKER_STYLE,
   type Speaker,
 } from "@/components/voiceover/speaker-panel";
-import { cosyvoiceVoices } from "@/config/site";
+import { cosyvoiceVoices, type Voice } from "@/config/site";
 import { estimateChars } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ const MAX_CHARS_PER_SPEAKER = 500;
 
 interface DialogueEditorProps {
   speakers: Speaker[];
+  clonedVoices?: Voice[];
   topic: string;
   generating: boolean;
   progress: { done: number; total: number } | null;
@@ -32,6 +33,7 @@ interface DialogueEditorProps {
 
 export function DialogueEditor({
   speakers,
+  clonedVoices = [],
   topic,
   generating,
   progress,
@@ -43,7 +45,7 @@ export function DialogueEditor({
   onGenerateAll,
 }: DialogueEditorProps) {
   const voiceLabel = (id: string): string => {
-    const v = cosyvoiceVoices.find((voice) => voice.id === id);
+    const v = [...cosyvoiceVoices, ...clonedVoices].find((voice) => voice.id === id);
     return v ? `${v.label} · ${v.chinese ?? v.style}` : id;
   };
 

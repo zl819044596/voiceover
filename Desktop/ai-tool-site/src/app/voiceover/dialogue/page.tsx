@@ -1,13 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Mic } from "lucide-react";
 import { SpeakerPanel, MAX_SPEAKERS, SPEAKER_COLORS, type Speaker } from "@/components/voiceover/speaker-panel";
 import { DialogueEditor } from "@/components/voiceover/dialogue-editor";
 import { DialoguePreview } from "@/components/voiceover/dialogue-preview";
 import { mergeAudioBlobs } from "@/lib/audio-merge";
-import { cosyvoiceVoices } from "@/config/site";
+import { cosyvoiceVoices, type Voice } from "@/config/site";
 import { incrementUsage } from "@/lib/usage-tracker";
+
+const CLONED_VOICES_KEY = "voiceover-cloned-voices";
+const FAVORITES_KEY = "voiceover-favorites";
 
 interface Progress {
   done: number;
@@ -82,9 +85,42 @@ export default function DialoguePage() {
   const [mergedAudioUrl, setMergedAudioUrl] = useState<string | null>(null);
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [speed, setSpeed] = useState(1.0);
+  const [pitch, setPitch] = useState(0); // semitones, -20 .. +20
   const [volume, setVolume] = useState(80);
 
+  // ── Cloned voices & favorites (shared with /voiceover via localStorage) ──
+  const [clonedVoices, setClonedVoices] = useState<Voice[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Load cloned voices from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CLONED_VOICES_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Voice[];
+        if (Array.isArray(parsed)) setClonedVoices(parsed);
+      }
+    } catch {
+      // ignore corrupted storage
+    }
+  }, []);
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FAVORITES_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setFavorites(parsed.filter((x): x is string => typeof x === "string"));
+        }
+      }
+    } catch {
+      // ignore corrupted storage
+    }
+  }, []);
 
   // ── Speaker list operations ──
   const addSpeaker = () => {
@@ -107,7 +143,25 @@ export default function DialoguePage() {
     setSpeakers((prev) => prev.map((s) => (s.id === id ? { ...s, text } : s)));
   };
 
-  // ── Per-speaker preview ──
+  const changeInstruct = (id: string, instruct: string) => {
+    setSpeakers((prev) => prev.map((s) => (s.id === id ? { ...s, instruct } : s)));
+  };
+
+  const toggleFavorite = (voiceId: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(voiceId)
+        ? prev.filter((x) => x !== voiceId)
+        : [...prev, voiceId];
+      try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+      } catch {
+        // storage may be full/unavailable
+      }
+      return next;
+    });
+  };
+
+  // ── Per-speaker / per-voice preview ──
   const stopPreview = () => {
     if (previewAudioRef.current) {
       previewAudioRef.current.pause();
@@ -116,30 +170,21 @@ export default function DialoguePage() {
     setPreviewingId(null);
   };
 
-  const previewSpeaker = async (id: string) => {
-    if (previewingId === id) {
-      stopPreview();
-      return;
-    }
+  const playPreview = async (voiceId: string, text: string, displayId?: string) => {
     stopPreview();
     setError("");
-
-    const speaker = speakers.find((s) => s.id === id);
-    if (!speaker) return;
-    setPreviewingId(id);
-
-    const text = speaker.text.trim() || SAMPLE_PREVIEW_TEXT;
+    setPreviewingId(displayId ?? voiceId);
     try {
       const res = await fetch("/api/tts/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: [text],
-          voice: speaker.voice,
+          voice: voiceId,
           engine: "cosyvoice-v2",
           speed,
           volume,
-          pitch: 1.0,
+          pitch: Math.pow(2, pitch / 12),
           enableSsml: false,
         }),
       });
@@ -162,6 +207,21 @@ export default function DialoguePage() {
       setPreviewingId(null);
       setError("Could not load this voice preview.");
     }
+  };
+
+  const previewSpeaker = (id: string) => {
+    const speaker = speakers.find((s) => s.id === id);
+    if (!speaker) return;
+    const text = speaker.text.trim() || SAMPLE_PREVIEW_TEXT;
+    playPreview(speaker.voice, text, id);
+  };
+
+  const previewVoice = (voiceId: string) => {
+    if (previewingId === voiceId) {
+      stopPreview();
+      return;
+    }
+    playPreview(voiceId, SAMPLE_PREVIEW_TEXT);
   };
 
   // ── AI Auto-Generate Dialogue ──
@@ -246,8 +306,9 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
             engine: "cosyvoice-v2",
             speed,
             volume,
-            pitch: 1.0,
+            pitch: Math.pow(2, pitch / 12),
             enableSsml: false,
+            ...(speaker.instruct?.trim() ? { instruct: speaker.instruct.trim() } : {}),
           }),
         });
         if (!res.ok) {
@@ -291,19 +352,27 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
           speakers={speakers}
           previewingId={previewingId}
           speed={speed}
+          pitch={pitch}
           volume={volume}
+          clonedVoices={clonedVoices}
+          favorites={favorites}
           onAddSpeaker={addSpeaker}
           onRemoveSpeaker={removeSpeaker}
           onRenameSpeaker={renameSpeaker}
           onVoiceChange={changeVoice}
           onPreviewSpeaker={previewSpeaker}
+          onPreviewVoice={previewVoice}
           onSpeedChange={setSpeed}
+          onPitchChange={setPitch}
           onVolumeChange={setVolume}
+          onToggleFavorite={toggleFavorite}
+          onInstructChange={changeInstruct}
         />
 
         {/* Center: text editors + action bar */}
         <DialogueEditor
           speakers={speakers}
+          clonedVoices={clonedVoices}
           topic={topic}
           generating={generating}
           progress={progress}
