@@ -105,21 +105,8 @@ export const cosyvoiceVoices: Voice[] = [
   { id: "longyingxiao", label: "William", gender: "male", age: "male", style: "Authoritative", language: "zh", engine: "cosyvoice-v2", chinese: "权威", description: "权威大气男声 · 适合广告/宣传", tags: ["advertising", "promo", "brand"] },
   { id: "longhouge", label: "George", gender: "male", age: "male", style: "Deep & Warm", language: "zh", engine: "cosyvoice-v2", chinese: "深沉", description: "深沉温暖男声 · 适合电影/纪录片", tags: ["documentary", "film", "cinematic"] },
   { id: "longjixin", label: "Oliver", gender: "male", age: "male", style: "Energetic", language: "zh", engine: "cosyvoice-v2", chinese: "活力", description: "活力四射男声 · 适合游戏/综艺", tags: ["gaming", "variety", "entertainment"] },
-  // ✨ New CosyVoice voices — 追加音色 · 成年女声
-  { id: "longfeiyu", label: "Fei Yu", gender: "female", age: "female", style: "Airy", language: "zh", engine: "cosyvoice-v2", chinese: "轻盈", description: "轻盈灵动女声 · 适合广告/氛围", tags: ["advertising", "vlog", "lifestyle"] },
-  { id: "longxiaoqiu", label: "Xiao Qiu", gender: "female", age: "female", style: "Cheerful", language: "zh", engine: "cosyvoice-v2", chinese: "俏皮", description: "俏皮可爱女声 · 适合综艺/搞笑", tags: ["entertainment", "variety", "vlog"] },
-  { id: "longyuning", label: "Yu Ning", gender: "female", age: "female", style: "Elegant", language: "zh", engine: "cosyvoice-v2", chinese: "温婉", description: "温婉优雅女声 · 适合情感/古风", tags: ["emotional", "culture", "literature"] },
-  { id: "longyinpin", label: "Yin Pin", gender: "female", age: "female", style: "Crisp", language: "zh", engine: "cosyvoice-v2", chinese: "清亮", description: "清亮干净女声 · 适合口播/资讯", tags: ["news", "daily", "tutorial"] },
-  { id: "longchun", label: "Chun", gender: "female", age: "female", style: "Springlike", language: "zh", engine: "cosyvoice-v2", chinese: "明媚", description: "明媚元气女声 · 适合美妆/生活", tags: ["lifestyle", "daily", "marketing"] },
-  { id: "longxin", label: "Xin", gender: "female", age: "female", style: "Joyful", language: "zh", engine: "cosyvoice-v2", chinese: "欢欣", description: "欢欣明亮女声 · 适合节日/庆典", tags: ["marketing", "entertainment", "vlog"] },
-  // ✨ New CosyVoice voices — 追加音色 · 成年男声
-  { id: "longshuang", label: "Shuang", gender: "male", age: "male", style: "Cool", language: "zh", engine: "cosyvoice-v2", chinese: "冷冽", description: "冷冽磁性男声 · 适合影视/游戏", tags: ["cinematic", "film", "gaming"] },
   // ✨ New CosyVoice voices — 追加音色 · 童声
-  { id: "longxiaoshu", label: "Xiao Shu", gender: "male", age: "child", style: "Innocent", language: "zh", engine: "cosyvoice-v2", chinese: "童真", description: "清澈童声 · 适合儿童内容/亲子", tags: ["kids", "family", "storytelling"] },
   { id: "longanran", label: "An Ran", gender: "female", age: "child", style: "Gentle", language: "zh", engine: "cosyvoice-v2", chinese: "乖巧", description: "乖巧软糯童声 · 适合儿童故事/早教", tags: ["kids", "storytelling", "education"] },
-  // ✨ New CosyVoice voices — 追加音色 · 老年
-  { id: "longzhen", label: "Zhen", gender: "female", age: "elderly", style: "Kindly", language: "zh", engine: "cosyvoice-v2", chinese: "慈祥", description: "慈祥温暖女声 · 适合长辈/公益", tags: ["family", "emotional", "wellness"] },
-  { id: "longhua", label: "Hua", gender: "male", age: "elderly", style: "Wise", language: "zh", engine: "cosyvoice-v2", chinese: "睿智", description: "睿智沉稳男声 · 适合历史/讲坛", tags: ["documentary", "education", "culture"] },
 ];
 
 /** Voices grouped by age band for the left sidebar gallery */
