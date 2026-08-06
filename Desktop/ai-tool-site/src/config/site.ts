@@ -134,7 +134,7 @@ export const voicesByAge: Record<AgeGroup, Voice[]> = {
 export const allVoices: Voice[] = [...cosyvoiceVoices];
 
 export const freeQuota = {
-  dailyTtsCount: 30,
+  dailyTtsCount: 5,
   maxCharsPerTts: 1000,
 } as const;
 
