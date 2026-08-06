@@ -135,7 +135,7 @@ export const allVoices: Voice[] = [...cosyvoiceVoices];
 
 export const freeQuota = {
   dailyTtsCount: 3,
-  maxCharsPerTts: 500,
+  maxCharsPerTts: 10000,
 } as const;
 
 export const shareBonus = {
