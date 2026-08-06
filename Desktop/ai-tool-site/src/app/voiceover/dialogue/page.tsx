@@ -321,6 +321,17 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
           throw new Error(err?.error || `TTS failed for ${speaker.name}`);
         }
         const blob = await res.blob();
+        // Validate the segment actually contains decodable audio — wingray
+        // occasionally returns 200 with a corrupt/empty body; catching it here
+        // avoids a silent "missing speaker" merged result.
+        try {
+          const probeCtx = new OfflineAudioContext(1, 1, 24000);
+          const probeBuf = await blob.arrayBuffer();
+          const probe = await probeCtx.decodeAudioData(probeBuf);
+          if (probe.duration < 0.05) throw new Error("empty audio");
+        } catch {
+          throw new Error(`TTS returned empty audio for ${speaker.name}. Please try again.`);
+        }
         blobs.push(blob);
         audios.push({
           id: speaker.id,
