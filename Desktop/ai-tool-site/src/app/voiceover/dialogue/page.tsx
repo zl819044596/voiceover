@@ -328,7 +328,16 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
           const probeCtx = new OfflineAudioContext(1, 1, 24000);
           const probeBuf = await blob.arrayBuffer();
           const probe = await probeCtx.decodeAudioData(probeBuf);
-          if (probe.duration < 0.05) throw new Error("empty audio");
+          // wingray occasionally returns 200 with a decodable-but-silent body
+          // (network degradation). Check both duration and actual energy so a
+          // silent segment fails loudly instead of silently vanishing.
+          const channel = probe.getChannelData(0);
+          let peak = 0;
+          for (let k = 0; k < channel.length; k += 4) {
+            const v = Math.abs(channel[k]);
+            if (v > peak) peak = v;
+          }
+          if (probe.duration < 0.05 || peak < 0.005) throw new Error("empty audio");
         } catch {
           throw new Error(`TTS returned empty audio for ${speaker.name}. Please try again.`);
         }
