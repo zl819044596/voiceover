@@ -75,14 +75,6 @@ const LANGUAGE_GROUPS: LangGroup[] = [
     children: [{ code: "zh", label: "普通话", flag: "🇨🇳" }],
   },
   {
-    code: "yue", label: "粤语", flag: "🇭🇰",
-    children: [{ code: "yue", label: "粤语", flag: "🇭🇰" }],
-  },
-  {
-    code: "sichuan", label: "四川话", flag: "🌶️",
-    children: [{ code: "sichuan", label: "四川话", flag: "🌶️" }],
-  },
-  {
     code: "en", label: "English", flag: "🇬🇧",
     children: [{ code: "en", label: "English", flag: "🇬🇧" }],
   },
