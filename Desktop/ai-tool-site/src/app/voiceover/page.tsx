@@ -290,12 +290,11 @@ export default function VoiceoverPage() {
       default:
         list = availableVoices;
     }
-    // Filter by selected language
-    list = list.filter((v) => v.language === selectedLang);
-    // If no voices for this language, fall back to showing all (cross-language)
-    if (list.length === 0 && tab === "all") list = availableVoices;
+    // NOTE: CosyVoice-V2 is a multilingual model — every voice can read every
+    // language. So we do NOT filter by language; the language selector only
+    // picks the target language for preview/generation text.
     return list;
-  }, [tab, availableVoices, favorites, clonedVoices, selectedLang]);
+  }, [tab, availableVoices, favorites, clonedVoices]);
 
   const visibleVoices = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -662,11 +661,14 @@ Output ONLY the polished script — no explanations, no markdown.`,
           {/* Language selector */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-400">语言 · Language</p>
+              <p className="text-xs font-semibold text-gray-400">配音语言 · Language</p>
               <span className="text-[10px] text-gray-400">
                 {(() => { const child = LANGUAGE_GROUPS.flatMap(g => g.children).find(c => c.code === selectedLang); return child ? `${child.flag} ${child.label}` : "普通话"; })()}
               </span>
             </div>
+            <p className="mb-2 text-[10px] leading-relaxed text-gray-400">
+              选择配音的目标语言 · 所有音色均支持多语言朗读（CosyVoice-V2）
+            </p>
             <div className="space-y-1">
               {LANGUAGE_GROUPS.map((group) => {
                 const hasChildren = group.children.length > 1;
@@ -677,7 +679,12 @@ Output ONLY the polished script — no explanations, no markdown.`,
                     {/* Parent button */}
                     <button
                       onClick={() => {
-                        if (group.locked) return;
+                        if (group.locked) {
+                          // Locked languages: guide user to clone a native voice
+                          setError("该语言暂无母语音色，克隆一个该语言的音色后即可解锁使用");
+                          openClonePanel();
+                          return;
+                        }
                         if (hasChildren) {
                           setExpandedGroup(isExpanded ? null : group.code);
                         } else {
@@ -685,11 +692,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
                           setExpandedGroup(null);
                         }
                       }}
-                      disabled={group.locked}
-                      title={group.locked ? "母语音色即将上线" : group.label}
+                      title={group.locked ? "点击克隆该语言的母语音色以解锁" : group.label}
                       className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-2 text-xs font-medium transition-all ${
                         group.locked
-                          ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300"
+                          ? "cursor-pointer border-gray-100 bg-gray-50 text-gray-400 hover:border-purple-300 hover:bg-purple-50"
                           : isGroupActive
                             ? "border-purple-600 bg-purple-50 text-purple-700"
                             : "border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:bg-purple-50"
