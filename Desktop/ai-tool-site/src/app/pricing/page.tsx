@@ -89,7 +89,7 @@ export default function PricingPage() {
       return (
         <Link
           href={plan.href as string}
-          className="block w-full rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          className="block w-full rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
         >
           {plan.cta}
         </Link>
@@ -119,7 +119,7 @@ export default function PricingPage() {
     if (thisPlanName === currentPlan) {
       // Current plan — cannot repurchase
       return (
-        <span className="block w-full rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-center text-sm font-semibold text-green-700">
+        <span className="block w-full rounded-lg border border-accent/30 bg-accent/10 px-4 py-2.5 text-center text-sm font-semibold text-accent">
           ✓ Current Plan
         </span>
       );
@@ -139,7 +139,7 @@ export default function PricingPage() {
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-          Simple, transparent pricing
+          Simple, transparent <span className="text-gradient">pricing</span>
         </h1>
         <p className="mt-4 text-lg text-gray-500">
           {isPro
@@ -154,12 +154,12 @@ export default function PricingPage() {
             key={plan.name}
             className={`relative flex flex-col rounded-2xl border p-6 ${
               plan.featured
-                ? "border-purple-500 ring-2 ring-purple-200"
-                : "border-gray-200"
+                ? "border-violet-500/60 bg-gray-50 ring-1 ring-violet-500/30"
+                : "border-gray-200 bg-white"
             }`}
           >
             {plan.featured && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-purple-600 px-3 py-1 text-xs font-medium text-white">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white">
                 Popular
               </span>
             )}
@@ -169,13 +169,13 @@ export default function PricingPage() {
               <span className="text-sm text-gray-500"> {plan.period}</span>
             </div>
             {plan.subtext && (
-              <p className="mt-1 text-xs text-gray-400">{plan.subtext}</p>
+              <p className="mt-1 text-xs text-gray-500">{plan.subtext}</p>
             )}
             {getButtonForPlan(plan)}
             <ul className="mt-6 space-y-2.5 flex-1">
               {plan.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2 text-sm text-gray-600">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                <li key={feature} className="flex items-start gap-2 text-sm text-gray-500">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                   {feature}
                 </li>
               ))}

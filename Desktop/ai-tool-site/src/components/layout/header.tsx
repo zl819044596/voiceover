@@ -17,37 +17,41 @@ export function Header() {
   const { user, isLoggedIn, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
-          <Mic className="h-6 w-6 text-purple-600" />
-          <span>Voiceover AI</span>
+        <Link href="/" className="flex items-center gap-2 text-lg font-medium tracking-tight text-gray-900">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-white">
+            <Mic className="h-4 w-4" />
+          </span>
+          <span>
+            Voiceover <span className="font-light">AI</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+        <nav className="hidden items-center gap-8 text-[15px] font-medium text-gray-500 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="hover:text-gray-900 transition-colors"
+              className="transition-colors hover:text-gray-900"
             >
               {link.label}
             </Link>
           ))}
 
           {isLoggedIn && user ? (
-            <div className="ml-4 flex items-center gap-3">
+            <div className="ml-2 flex items-center gap-3">
               <img
                 src={user.picture}
                 alt={user.name}
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full ring-1 ring-gray-200"
                 referrerPolicy="no-referrer"
               />
-              <span className="text-gray-700">{user.name}</span>
+              <span className="hidden text-sm text-gray-600 lg:inline">{user.name}</span>
               <button
                 onClick={logout}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
+                className="rounded-full border border-gray-200 px-4 py-1.5 text-sm text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
               >
                 Logout
               </button>
@@ -55,7 +59,7 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="ml-4 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 transition-colors"
+              className="ml-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
             >
               Login
             </Link>
@@ -64,7 +68,7 @@ export function Header() {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 text-gray-600"
+          className="md:hidden p-2 text-gray-500"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
@@ -74,7 +78,7 @@ export function Header() {
 
       {/* Mobile nav */}
       {open && (
-        <nav className="md:hidden border-t border-gray-100 bg-white px-4 pb-4">
+        <nav className="border-t border-gray-100 bg-white px-4 pb-4 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -91,7 +95,7 @@ export function Header() {
               <img
                 src={user.picture}
                 alt={user.name}
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full ring-1 ring-gray-200"
                 referrerPolicy="no-referrer"
               />
               <span className="text-sm font-medium text-gray-700">{user.name}</span>
@@ -100,7 +104,7 @@ export function Header() {
                   logout();
                   setOpen(false);
                 }}
-                className="ml-auto rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500"
+                className="ml-auto rounded-full border border-gray-200 px-3 py-1.5 text-xs text-gray-600"
               >
                 Logout
               </button>
@@ -108,7 +112,7 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="mt-2 block rounded-lg bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white"
+              className="mt-2 block rounded-full bg-gray-900 px-4 py-2 text-center text-sm font-medium text-white"
               onClick={() => setOpen(false)}
             >
               Login

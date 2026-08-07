@@ -7,9 +7,9 @@ export default function NotFound() {
       {/* 404 graphic */}
       <div className="mb-8 flex items-center justify-center">
         <div className="relative">
-          <Mic className="h-16 w-16 text-purple-200" />
+          <Mic className="h-16 w-16 text-violet-600" />
           <span
-            className="absolute -inset-4 flex items-center justify-center text-8xl font-bold text-gray-200/50 select-none"
+            className="absolute -inset-4 flex items-center justify-center text-8xl font-bold text-gray-900/10 select-none"
             aria-hidden="true"
           >
             404
@@ -29,14 +29,14 @@ export default function NotFound() {
       <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
         <Link
           href="/"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-8 py-4 text-base font-semibold text-white shadow-lg hover:bg-purple-700 transition-colors sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-gray-900/10 hover:bg-gray-700 transition-colors sm:w-auto"
         >
           <Home className="h-5 w-5" />
           Back to Home
         </Link>
         <Link
           href="/blog"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-4 text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 px-8 py-4 text-base font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors sm:w-auto"
         >
           <Newspaper className="h-5 w-5" />
           Browse Blog

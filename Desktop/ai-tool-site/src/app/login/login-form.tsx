@@ -5,7 +5,7 @@ export function LoginForm() {
     <div className="mt-8 space-y-3">
       <a
         href="/api/auth/google"
-        className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 transition-colors"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
           <path

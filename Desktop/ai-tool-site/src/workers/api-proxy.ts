@@ -422,12 +422,12 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
   // Voice cloning requires login (server-side enforcement)
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return Response.json({ error: "请先登录后再使用克隆功能" }, { status: 401, headers: corsHeaders });
+    return Response.json({ error: "Please sign in to use voice cloning" }, { status: 401, headers: corsHeaders });
   }
   const token = authHeader.slice(7);
   const payload = await verifyJwt(token, env.JWT_SECRET);
   if (!payload) {
-    return Response.json({ error: "登录已过期，请重新登录" }, { status: 401, headers: corsHeaders });
+    return Response.json({ error: "Session expired, please sign in again" }, { status: 401, headers: corsHeaders });
   }
 
   const formData = await request.formData();
@@ -450,15 +450,15 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  // 手动构造 multipart body —— wingray 官方规范要求
-  // tts_speaker_voice_generate_req 字段必须带 Content-Type: application/json
-  // （FormData 裸 append 是 text/plain，会被上游返回 500 "Server is busy" 拒绝）
+  // Build multipart body manually — wingray requires
+  // the tts_speaker_voice_generate_req field to have Content-Type: application/json
+  // (bare FormData append is text/plain, upstream returns 500 "Server is busy")
   const boundary = `----FormBoundary${crypto.randomUUID().replace(/-/g, "")}`;
   const audioBytes = new Uint8Array(await audioFile.arrayBuffer());
   const encoder = new TextEncoder();
   const chunks: BlobPart[] = [];
 
-  // 字段 1: audio_file（文件）
+  // field 1: audio_file (the file)
   chunks.push(
     encoder.encode(
       `--${boundary}\r\n` +
@@ -469,7 +469,7 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
   chunks.push(audioBytes);
   chunks.push(encoder.encode(`\r\n`));
 
-  // 字段 2: tts_speaker_voice_generate_req（JSON，官方要求 application/json）
+  // field 2: tts_speaker_voice_generate_req (JSON, must be application/json)
   chunks.push(
     encoder.encode(
       `--${boundary}\r\n` +
@@ -497,25 +497,25 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
         "Content-Type": `multipart/form-data; boundary=${boundary}`,
       },
       body: upstreamBody,
-      // 上游 upload 服务可能挂起（历史: >240s 无响应导致 CF 524）。
-      // 25s 超时主动返回友好错误，避免用户等 30s+ 收到 524。
+      // upstream upload can hang (history: >240s no response → CF 524).
+      // 25s timeout returns a friendly error instead of making users wait 30s+.
       signal: AbortSignal.timeout(25_000),
     });
   } catch (e) {
-    // 超时（AbortSignal.timeout）或网络错误——上游服务不可用
+    // timeout (AbortSignal.timeout) or network error — upstream unavailable
     const isTimeout = e instanceof Error && e.name === "AbortError";
     return Response.json(
       {
         error: isTimeout
-          ? "克隆服务繁忙，请稍后重试（上游处理超时）"
-          : `克隆失败: ${e instanceof Error ? e.message : "未知错误"}`,
+          ? "Cloning service is busy, please try again later (upstream timeout)"
+          : `Cloning failed: ${e instanceof Error ? e.message : "Unknown error"}`,
       },
       { status: 504, headers: corsHeaders }
     );
   }
 
   if (!res.ok) {
-    // 透传上游错误消息，便于诊断
+    // pass through upstream error message for diagnostics
     let upstreamMsg = "";
     try {
       const j = (await res.json()) as { message?: string };

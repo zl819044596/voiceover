@@ -12,7 +12,7 @@ export default function GdprPage() {
       <h1 className="text-3xl font-bold text-gray-900">GDPR Compliance</h1>
       <p className="mt-2 text-sm text-gray-500">Last updated: August 2026</p>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-gray-600">
+      <div className="mt-8 space-y-6 text-sm leading-relaxed text-gray-500">
         <section>
           <h2 className="text-lg font-semibold text-gray-900">Our Commitment</h2>
           <p className="mt-2">

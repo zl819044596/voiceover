@@ -20,13 +20,13 @@ export default function LoginPage() {
 
       <LoginForm />
 
-      <p className="mt-6 text-center text-xs text-gray-400">
+      <p className="mt-6 text-center text-xs text-gray-500">
         By signing in, you agree to our{" "}
-        <Link href="/terms" className="underline hover:text-gray-600">
+        <Link href="/terms" className="underline hover:text-gray-900">
           Terms
         </Link>{" "}
         and{" "}
-        <Link href="/privacy" className="underline hover:text-gray-600">
+        <Link href="/privacy" className="underline hover:text-gray-900">
           Privacy Policy
         </Link>
         .

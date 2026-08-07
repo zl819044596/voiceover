@@ -68,7 +68,7 @@ export function CheckoutButton({ productId, label, featured }: CheckoutButtonPro
         disabled={loading}
         className={`block w-full rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
           featured
-            ? "bg-purple-600 text-white hover:bg-purple-700 disabled:bg-purple-400"
+            ? "bg-gray-900 text-white hover:bg-gray-700 disabled:bg-gray-400"
             : "border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:text-gray-400"
         }`}
       >

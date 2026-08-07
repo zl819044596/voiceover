@@ -23,12 +23,12 @@ export function DialoguePreview({ speakers }: DialoguePreviewProps) {
   const hasContent = bubbles.length > 0;
 
   return (
-    <aside className="flex flex-col rounded-xl border border-purple-100 bg-white shadow-sm">
-      <div className="flex items-center gap-2 rounded-t-xl border-b border-purple-50 bg-purple-50 px-4 py-3">
-        <MessageSquare className="h-4 w-4 text-purple-600" />
-        <h2 className="text-sm font-semibold text-gray-800">Dialogue Preview</h2>
+    <aside className="flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center gap-2 rounded-t-xl border-b border-gray-200 bg-gray-50 px-4 py-3">
+        <MessageSquare className="h-4 w-4 text-violet-600" />
+        <h2 className="text-sm font-semibold text-gray-900">Dialogue Preview</h2>
         {hasContent && (
-          <span className="ml-auto rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700">
+          <span className="ml-auto rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
             {bubbles.length} lines
           </span>
         )}
@@ -37,11 +37,11 @@ export function DialoguePreview({ speakers }: DialoguePreviewProps) {
       <div className="h-full max-h-[calc(100vh-220px)] space-y-4 overflow-y-auto p-4">
         {!hasContent ? (
           <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-2 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-50 text-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-2xl">
               💬
             </div>
             <p className="text-sm font-medium text-gray-500">No dialogue yet</p>
-            <p className="max-w-[200px] text-xs text-gray-400">
+            <p className="max-w-[200px] text-xs text-gray-500">
               Type dialogue for each speaker on the left, or use AI Auto-Generate.
             </p>
           </div>
@@ -80,7 +80,7 @@ export function DialoguePreview({ speakers }: DialoguePreviewProps) {
                   </div>
                   <div
                     className={cn(
-                      "inline-block rounded-2xl border px-3.5 py-2 text-sm leading-relaxed text-gray-800 shadow-sm",
+                      "inline-block rounded-2xl border px-3.5 py-2 text-sm leading-relaxed text-gray-900 shadow-sm",
                       style.bubble,
                       style.bubbleBorder,
                       alignRight ? "rounded-br-md" : "rounded-bl-md"

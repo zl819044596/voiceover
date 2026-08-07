@@ -53,8 +53,8 @@ export default function BlogPage() {
 
       <div className="mt-10 space-y-10">
         {posts.map((post) => (
-          <article key={post.slug} className="border-b border-gray-100 pb-8">
-            <div className="flex items-center gap-2 text-xs text-gray-400">
+          <article key={post.slug} className="border-b border-gray-200 pb-8">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
               <time dateTime={post.date}>
                 {new Date(post.date).toLocaleDateString("en-US", {
                   year: "numeric",
@@ -66,7 +66,7 @@ export default function BlogPage() {
               <span>{post.readTime}</span>
             </div>
             <Link href={`/blog/${post.slug}`} className="group">
-              <h2 className="mt-2 text-xl font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+              <h2 className="mt-2 text-xl font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
                 {post.title}
               </h2>
             </Link>
@@ -75,7 +75,7 @@ export default function BlogPage() {
             </p>
             <Link
               href={`/blog/${post.slug}`}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-600 hover:text-purple-700"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-600"
             >
               Read more
               <ArrowRight className="h-3.5 w-3.5" />

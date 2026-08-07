@@ -49,11 +49,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-      <Link href="/blog" className="text-sm text-purple-600 hover:underline">← Back to Blog</Link>
+      <Link href="/blog" className="text-sm text-violet-600 hover:underline">← Back to Blog</Link>
       <article className="mt-6">
         <h1 className="text-3xl font-bold text-gray-900">{post.title}</h1>
-        <p className="mt-2 text-sm text-gray-400">{post.date}</p>
-        <div className="mt-8 space-y-4 text-sm leading-relaxed text-gray-600">
+        <p className="mt-2 text-sm text-gray-500">{post.date}</p>
+        <div className="mt-8 space-y-4 text-sm leading-relaxed text-gray-500">
           {paragraphs.map((p, i) => {
             if (p.startsWith("## ")) {
               return <h2 key={i} className="text-xl font-semibold text-gray-900 mt-8">{p.replace("## ", "")}</h2>;
@@ -67,10 +67,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           })}
         </div>
       </article>
-      <div className="mt-10 border-t border-gray-100 pt-6">
+      <div className="mt-10 border-t border-gray-200 pt-6">
         <Link
           href="/voiceover"
-          className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 transition-colors"
         >
           Try AI Voiceover Free <ArrowRight className="h-4 w-4" />
         </Link>

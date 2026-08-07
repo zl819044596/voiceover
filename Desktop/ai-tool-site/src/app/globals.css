@@ -1,14 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #7c3aed;
-  --color-primary-dark: #6d28d9;
-  --color-primary-light: #ede9fe;
+  /* ElevenLabs-inspired light palette */
+  --color-ink: #ffffff;        /* page background */
+  --color-surface: #ffffff;    /* card surface */
+  --color-surface-2: #f5f5f5;  /* raised surface / subtle fill */
+  --color-primary: #000000;    /* primary black */
+  --color-primary-dark: #1a1a1a;
+  --color-primary-light: #4e4e4e;
+  --color-accent: #7c3aed;     /* violet accent */
+  --color-accent-dark: #6d28d9;
+  --color-edge: rgba(0, 0, 0, 0.06); /* hairline borders */
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-ink);
+  color: #111111;
 }
 
 /* ── Homepage hero mockup: animated waveform bars ─────────────────────────── */
@@ -34,3 +43,51 @@ body {
   }
 }
 
+/* ── ElevenLabs-style text gradient (light) ───────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(100deg, #111111 20%, #7c3aed 60%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-accent {
+  background: linear-gradient(100deg, #7c3aed, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Ambient glow orbs (light, subtle) ────────────────────────────────────── */
+.glow-violet {
+  background: radial-gradient(closest-side, rgba(124, 58, 237, 0.1), transparent);
+}
+
+.glow-lime {
+  background: radial-gradient(closest-side, rgba(163, 230, 53, 0.1), transparent);
+}
+
+/* ── Custom scrollbar for voice galleries ─────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Light native audio/range elements */
+input[type="range"] {
+  accent-color: #7c3aed;
+}
+
+audio {
+  filter: none;
+}

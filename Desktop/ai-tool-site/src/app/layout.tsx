@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -8,13 +8,8 @@ import { JsonLd } from "@/components/json-ld";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -34,13 +29,12 @@ export const metadata: Metadata = {
     "multi-speaker dialogue",
     "multi-speaker text to speech",
     "voice cloning",
-    "AI配音",
-    "中文配音",
-    "多角色对白",
     "TikTok voiceover",
     "AI narrator",
     "free TTS",
     "video voiceover generator",
+    "AI voice generator",
+    "text to speech online",
   ],
   alternates: {
     canonical: SITE_URL,
@@ -75,8 +69,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="zh-CN"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="en"
+      className={`${inter.variable} h-full antialiased`}
     >
       <head>
         <Script
@@ -90,7 +84,7 @@ export default function RootLayout({
           gtag('config', 'G-2N7QYREJNW');`}
         </Script>
       </head>
-      <body className="flex min-h-full flex-col bg-white text-gray-900">
+      <body className="flex min-h-full flex-col bg-ink text-gray-900" style={{ fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif" }}>
         <Providers>
         <JsonLd data={{
           "@context": "https://schema.org",

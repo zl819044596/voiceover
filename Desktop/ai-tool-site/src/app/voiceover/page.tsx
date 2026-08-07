@@ -49,10 +49,10 @@ type VoiceTab = "all" | "favorites" | "clones";
 const AGE_ORDER: AgeGroup[] = ["male", "female", "child", "elderly"];
 
 const AGE_META: Record<AgeGroup, { label: string; emoji: string }> = {
-  male: { label: "男声 Male", emoji: "👨" },
-  female: { label: "女声 Female", emoji: "👩" },
-  child: { label: "童声 Child", emoji: "🧒" },
-  elderly: { label: "老年 Elderly", emoji: "🧓" },
+  male: { label: "Male", emoji: "👨" },
+  female: { label: "Female", emoji: "👩" },
+  child: { label: "Child", emoji: "🧒" },
+  elderly: { label: "Elderly", emoji: "🧓" },
 };
 
 const LANG_META = Object.fromEntries(
@@ -71,8 +71,8 @@ interface LangGroup {
 }
 const LANGUAGE_GROUPS: LangGroup[] = [
   {
-    code: "zh", label: "中文", flag: "🇨🇳",
-    children: [{ code: "zh", label: "普通话", flag: "🇨🇳" }],
+    code: "zh", label: "Mandarin", flag: "🇨🇳",
+    children: [{ code: "zh", label: "Mandarin", flag: "🇨🇳" }],
   },
   {
     code: "en", label: "English", flag: "🇬🇧",
@@ -109,9 +109,9 @@ const LANGUAGE_GROUPS: LangGroup[] = [
 ];
 
 const CATEGORY_META: { id: VoiceTab; label: string; short?: string }[] = [
-  { id: "all", label: "全部音色" },
-  { id: "favorites", label: "我的收藏", short: "收藏" },
-  { id: "clones", label: "克隆声音", short: "克隆" },
+  { id: "all", label: "All Voices" },
+  { id: "favorites", label: "Favorites", short: "Favs" },
+  { id: "clones", label: "Clones", short: "Clones" },
 ];
 
 // Preview sample text per language
@@ -130,44 +130,44 @@ const SAMPLE_BY_LANG: Record<LanguageCode, (label: string) => string> = {
 };
 
 const TAG_LABELS: Record<string, string> = {
-  news: "新闻",
-  documentary: "纪录片",
-  education: "教育",
-  narration: "旁白",
-  audiobook: "有声书",
-  storytelling: "故事",
-  marketing: "营销",
+  news: "News",
+  documentary: "Documentary",
+  education: "Education",
+  narration: "Narration",
+  audiobook: "Audiobook",
+  storytelling: "Storytelling",
+  marketing: "Marketing",
   vlog: "Vlog",
-  entertainment: "娱乐",
-  tiktok: "短视频",
-  emotional: "情感",
-  lifestyle: "生活",
-  meditation: "冥想",
-  business: "商务",
-  training: "培训",
-  corporate: "企业",
-  sleep: "助眠",
-  wellness: "健康",
-  "customer-service": "客服",
-  tutorial: "教程",
-  sports: "运动",
-  travel: "旅行",
-  poetry: "诗歌",
-  literature: "文学",
-  culture: "文化",
-  daily: "日常",
-  food: "美食",
-  general: "通用",
-  "all-purpose": "全能",
-  advertising: "广告",
-  promo: "宣传",
-  brand: "品牌",
-  film: "电影",
-  cinematic: "电影感",
-  gaming: "游戏",
-  variety: "综艺",
-  kids: "亲子",
-  family: "家庭",
+  entertainment: "Entertainment",
+  tiktok: "Short Video",
+  emotional: "Emotional",
+  lifestyle: "Lifestyle",
+  meditation: "Meditation",
+  business: "Business",
+  training: "Training",
+  corporate: "Corporate",
+  sleep: "Sleep",
+  wellness: "Wellness",
+  "customer-service": "Service",
+  tutorial: "Tutorial",
+  sports: "Sports",
+  travel: "Travel",
+  poetry: "Poetry",
+  literature: "Literature",
+  culture: "Culture",
+  daily: "Daily",
+  food: "Food",
+  general: "General",
+  "all-purpose": "All-Purpose",
+  advertising: "Advertising",
+  promo: "Promo",
+  brand: "Brand",
+  film: "Film",
+  cinematic: "Cinematic",
+  gaming: "Gaming",
+  variety: "Variety",
+  kids: "Kids",
+  family: "Family",
 };
 
 export default function VoiceoverPage() {
@@ -516,13 +516,13 @@ Output ONLY the polished script — no explanations, no markdown.`,
     if (!file.type.startsWith("audio/")) {
       setCloneFile(null);
       setCloneDuration(null);
-      setCloneError("请上传音频文件（MP3/WAV）");
+      setCloneError("Please choose an audio file (MP3/WAV)");
       return;
     }
     if (file.size > MAX_CLONE_SIZE) {
       setCloneFile(null);
       setCloneDuration(null);
-      setCloneError("音频文件需小于 10MB");
+      setCloneError("Audio file must be under 10MB");
       return;
     }
     setCloneFile(file);
@@ -551,19 +551,19 @@ Output ONLY the polished script — no explanations, no markdown.`,
       return;
     }
     if (!cloneFile) {
-      setCloneError("请先上传音频文件");
+      setCloneError("Please upload an audio file first");
       return;
     }
     if (!cloneName.trim()) {
-      setCloneError("请输入声音名称");
+      setCloneError("Please enter a voice name");
       return;
     }
     if (!clonePrompt.trim()) {
-      setCloneError("请输入音频对应的文本（prompt_text）");
+      setCloneError("Please enter the text spoken in the audio (prompt_text)");
       return;
     }
     if (cloneDuration !== null && (cloneDuration < 10 || cloneDuration > 30)) {
-      setCloneError(`音频时长需为 10–30 秒（当前 ${cloneDuration.toFixed(1)} 秒）`);
+      setCloneError(`Audio must be 10–30 seconds long (currently ${cloneDuration.toFixed(1)}s)`);
       return;
     }
 
@@ -587,7 +587,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "克隆失败，请重试");
+        throw new Error(err.error || "Cloning failed, please try again");
       }
 
       const data = await res.json();
@@ -599,7 +599,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
         style: "Cloned",
         engine: "cosyvoice-v2",
         language: "zh",
-        description: "我的克隆声音 · 使用上传音频训练",
+        description: "My cloned voice · trained from uploaded audio",
         tags: [],
         cloned: true,
       };
@@ -620,7 +620,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
       setTab("clones");
       setVoice(newVoice.id);
     } catch (err) {
-      setCloneError(err instanceof Error ? err.message : "克隆失败，请重试");
+      setCloneError(err instanceof Error ? err.message : "Cloning failed, please try again");
     } finally {
       setCloneLoading(false);
     }
@@ -647,14 +647,14 @@ Output ONLY the polished script — no explanations, no markdown.`,
           </div>
           <div>
             <h1 className="text-xl font-bold sm:text-2xl">AI Voiceover Studio</h1>
-            <p className="mt-1 text-sm text-purple-100">
+            <p className="mt-1 text-sm text-violet-100">
               Turn text into natural voiceover audio. Free tier: 10,000 chars/month, 1,000 chars/request.
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
-            17 Voices · CosyVoice-V2
+            17 Voices
           </span>
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
             9 Languages
@@ -667,17 +667,17 @@ Output ONLY the polished script — no explanations, no markdown.`,
 
       <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-[16rem_minmax(0,1fr)_20rem]">
         {/* ══ Left column: language selector + voice library ══ */}
-        <aside className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm md:col-span-2 lg:col-span-1">
+        <aside className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 lg:col-span-1">
           {/* Language selector */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-400">配音语言 · Language</p>
+              <p className="text-xs font-semibold text-gray-400">Language</p>
               <span className="text-[10px] text-gray-400">
-                {(() => { const child = LANGUAGE_GROUPS.flatMap(g => g.children).find(c => c.code === selectedLang); return child ? `${child.flag} ${child.label}` : "普通话"; })()}
+                {(() => { const child = LANGUAGE_GROUPS.flatMap(g => g.children).find(c => c.code === selectedLang); return child ? `${child.flag} ${child.label}` : "Mandarin"; })()}
               </span>
             </div>
             <p className="mb-2 text-[10px] leading-relaxed text-gray-400">
-              选择配音的目标语言 · 同一音色可用任意语言朗读（CosyVoice-V2 多语言模型）
+              Pick the target language for your text. Every voice can speak any language.
             </p>
             <div className="space-y-1">
               {LANGUAGE_GROUPS.map((group) => {
@@ -699,8 +699,8 @@ Output ONLY the polished script — no explanations, no markdown.`,
                       title={group.label}
                       className={`flex w-full items-center justify-between rounded-lg border px-2.5 py-2 text-xs font-medium transition-all ${
                         isGroupActive
-                          ? "border-purple-600 bg-purple-50 text-purple-700"
-                          : "border-gray-200 bg-white text-gray-600 hover:border-purple-300 hover:bg-purple-50"
+                          ? "border-violet-500 bg-violet-50 text-violet-700"
+                          : "border-gray-200 bg-white text-gray-500 hover:border-violet-200 hover:bg-violet-50"
                       }`}
                     >
                       <span className="flex items-center gap-1.5">
@@ -717,7 +717,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                     </button>
                     {/* Child options */}
                     {hasChildren && isExpanded && (
-                      <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-purple-100 pl-3">
+                      <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-violet-100 pl-3">
                         {group.children.map((child) => {
                           const isActive = selectedLang === child.code;
                           return (
@@ -729,8 +729,8 @@ Output ONLY the polished script — no explanations, no markdown.`,
                               }}
                               className={`block w-full rounded-md px-2 py-1 text-left text-[11px] font-medium transition-all ${
                                 isActive
-                                  ? "bg-purple-100 text-purple-700"
-                                  : "text-gray-500 hover:bg-purple-50 hover:text-purple-600"
+                                  ? "bg-violet-100 text-violet-700"
+                                  : "text-gray-400 hover:bg-violet-50 hover:text-violet-600"
                               }`}
                             >
                               <span className="text-xs">{child.flag}</span>{" "}
@@ -752,14 +752,14 @@ Output ONLY the polished script — no explanations, no markdown.`,
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索声音（名称 / 风格 / 标签）..."
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-7 text-xs placeholder:text-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none"
+              placeholder="Search voices (name / style / tag)..."
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-7 text-xs placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
-                title="清除搜索"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                title="Clear search"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -767,37 +767,37 @@ Output ONLY the polished script — no explanations, no markdown.`,
           </div>
 
           {/* Currently selected voice */}
-          <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-purple-100 bg-purple-50 p-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-purple-600 text-lg shadow-sm">
+          <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-violet-100 bg-violet-50 p-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-lg shadow-sm">
               {avatarFor(selectedVoice)}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-gray-900">
+              <p className="truncate text-xs font-semibold text-gray-900">
                 {selectedVoice.label}
                 {selectedVoice.cloned && (
-                  <span className="ml-1 rounded bg-purple-600 px-1 py-0.5 text-[9px] font-bold text-white">
+                  <span className="ml-1 rounded bg-gray-900 px-1 py-0.5 text-[9px] font-bold text-white">
                     🤖
                   </span>
                 )}
               </p>
-              <p className="truncate text-[10px] text-purple-600">● 使用中</p>
+              <p className="truncate text-[10px] text-violet-600">● In use</p>
             </div>
           </div>
 
           {/* Tabs: all / favorites / clones */}
-          <div className="mt-3 flex gap-1 rounded-lg bg-gray-100 p-1">
+          <div className="mt-3 flex gap-1 rounded-lg bg-gray-50 p-1">
             {CATEGORY_META.map((c) => (
               <button
                 key={c.id}
                 onClick={() => setTab(c.id)}
                 className={`flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all ${
                   tab === c.id
-                    ? "bg-white text-purple-700 shadow-sm ring-1 ring-purple-200"
-                    : "text-gray-500 hover:text-gray-800"
+                    ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-200"
+                    : "text-gray-400 hover:text-gray-800"
                 }`}
               >
                 {c.short ?? c.label}
-                <span className={tab === c.id ? "text-purple-400" : "text-gray-400"}>
+                <span className={tab === c.id ? "text-violet-600/80" : "text-gray-400"}>
                   {" "}({tabCount(c.id)})
                 </span>
               </button>
@@ -814,7 +814,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 <div key={age}>
                   <button
                     onClick={() => toggleCollapse(age)}
-                    className="flex w-full items-center gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5 text-left transition-colors hover:bg-gray-100"
+                    className="flex w-full items-center gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5 text-left transition-colors hover:bg-gray-50"
                   >
                     <ChevronDown
                       className={`h-3 w-3 text-gray-400 transition-transform ${
@@ -842,13 +842,13 @@ Output ONLY the polished script — no explanations, no markdown.`,
                             onClick={() => setVoice(v.id)}
                             className={`group flex cursor-pointer items-center gap-2 rounded-lg border px-2 py-1.5 transition-all ${
                               selected
-                                ? "border-purple-600 bg-purple-600 text-white shadow-sm"
-                                : "border-transparent bg-gray-50 hover:border-purple-300 hover:bg-purple-50"
+                                ? "border-violet-500 bg-gray-900 text-white shadow-sm"
+                                : "border-transparent bg-gray-50 hover:border-violet-200 hover:bg-violet-50"
                             }`}
                           >
                             <span
                               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-base ${
-                                selected ? "bg-white/20" : "bg-white"
+                                selected ? "bg-gray-200" : "bg-gray-100"
                               }`}
                             >
                               {avatarFor(v)}
@@ -866,7 +866,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                                 {isClone && (
                                   <span
                                     className={`ml-1 text-[9px] ${
-                                      selected ? "text-purple-200" : "text-purple-500"
+                                      selected ? "text-violet-200" : "text-violet-600"
                                     }`}
                                   >
                                     🤖
@@ -875,10 +875,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
                               </p>
                               <p
                                 className={`truncate text-[10px] ${
-                                  selected ? "text-purple-200" : "text-gray-400"
+                                  selected ? "text-violet-200" : "text-gray-400"
                                 }`}
                               >
-                                {isClone ? "我的克隆声音" : v.chinese || v.style}
+                                {isClone ? "My clone" : v.chinese || v.style}
                               </p>
                             </div>
                             {/* Preview */}
@@ -889,12 +889,12 @@ Output ONLY the polished script — no explanations, no markdown.`,
                               }}
                               className={`shrink-0 rounded-full p-1 transition-colors ${
                                 previewing
-                                  ? "bg-white text-purple-600"
+                                  ? "bg-gray-100 text-violet-600"
                                   : selected
-                                    ? "text-purple-200 hover:text-white"
-                                    : "text-gray-300 hover:bg-purple-100 hover:text-purple-600"
+                                    ? "text-violet-200 hover:text-white"
+                                    : "text-gray-400 hover:bg-violet-100 hover:text-violet-600"
                               }`}
-                              title={previewing ? "停止试听" : "试听"}
+                              title={previewing ? "Stop preview" : "Preview"}
                             >
                               {previewing ? (
                                 <Square className="h-3.5 w-3.5 fill-current" />
@@ -912,10 +912,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
                                 fav
                                   ? "text-red-400"
                                   : selected
-                                    ? "text-purple-200 hover:text-white"
-                                    : "text-gray-300 hover:text-red-400"
+                                    ? "text-violet-200 hover:text-white"
+                                    : "text-gray-400 hover:text-red-400"
                               }`}
-                              title={fav ? "取消收藏" : "收藏"}
+                              title={fav ? "Unfavorite" : "Favorite"}
                             >
                               <Heart
                                 className={`h-3.5 w-3.5 ${fav ? "fill-current" : ""}`}
@@ -928,8 +928,8 @@ Output ONLY the polished script — no explanations, no markdown.`,
                                   e.stopPropagation();
                                   handleDeleteClone(v.id);
                                 }}
-                                className="shrink-0 rounded-full p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500"
-                                title="删除克隆声音"
+                                className="shrink-0 rounded-full p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                                title="Delete clone"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -948,17 +948,17 @@ Output ONLY the polished script — no explanations, no markdown.`,
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-8 text-gray-400">
                 <p className="text-xs">
                   {tab === "clones"
-                    ? "还没有克隆声音"
+                    ? "No clones yet"
                     : tab === "favorites"
-                      ? "还没有收藏声音"
-                      : "没有匹配的声音"}
+                      ? "No favorites yet"
+                      : "No matching voices"}
                 </p>
                 {(searchQuery || tab !== "all") && (
                   <button
                     onClick={clearFilters}
-                    className="mt-1 text-[11px] text-purple-500 underline hover:text-purple-700"
+                    className="mt-1 text-[11px] text-violet-600 underline hover:text-violet-700"
                   >
-                    清除筛选条件
+                    Clear filters
                   </button>
                 )}
               </div>
@@ -968,40 +968,40 @@ Output ONLY the polished script — no explanations, no markdown.`,
           {/* Clone button */}
           <button
             onClick={openClonePanel}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-purple-300 bg-purple-50/50 py-2 text-xs font-semibold text-purple-600 transition-colors hover:border-purple-400 hover:bg-purple-100"
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-violet-200 bg-violet-50 py-2 text-xs font-semibold text-violet-600 transition-colors hover:border-violet-300 hover:bg-violet-100"
           >
             <Plus className="h-3.5 w-3.5" />
-            克隆声音 🔬
+            Voice Cloning 🔬
           </button>
         </aside>
 
         {/* ══ Center column: text input + clone + generate ══ */}
         <main className="min-w-0 space-y-4">
           {/* Text input */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <textarea
               value={text}
               onChange={(e) => {
                 setText(e.target.value);
                 setPolishedText("");
               }}
-              placeholder="输入文本..."
+              placeholder="Type your script here..."
               rows={8}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none resize-none"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none resize-none"
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span
                 className={`text-xs ${
-                  isOverLimit ? "text-red-500 font-medium" : "text-gray-400"
+                  isOverLimit ? "text-red-600 font-medium" : "text-gray-400"
                 }`}
               >
                 {charsUsed} / {maxCharsPerTts} chars
-                {isOverLimit && " — 超出上限!"}
+                {isOverLimit && " — over limit!"}
               </span>
               <button
                 onClick={handlePolish}
                 disabled={!text.trim() || loading}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50 transition-colors"
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 disabled:opacity-50 transition-colors"
                 title="MiniMax M2.7 — Script polishing & optimization"
               >
                 <Sparkles className="h-3.5 w-3.5" />
@@ -1012,18 +1012,18 @@ Output ONLY the polished script — no explanations, no markdown.`,
 
           {/* Polished result */}
           {polishedText && (
-            <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <div className="rounded-xl border border-violet-200 bg-violet-50 p-4">
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-xs font-medium text-purple-700">
+                <p className="text-xs font-medium text-violet-700">
                   <Sparkles className="mr-1 inline h-3 w-3" />
                   MiniMax M2.7 — Polished Script
                 </p>
-                <span className="text-xs text-purple-400">Voiceover optimized</span>
+                <span className="text-xs text-violet-600/80">Voiceover optimized</span>
               </div>
-              <p className="text-sm text-purple-900">{polishedText}</p>
+              <p className="text-sm text-violet-900">{polishedText}</p>
               <button
                 onClick={() => setPolishedText("")}
-                className="mt-2 text-xs text-purple-500 hover:text-purple-700"
+                className="mt-2 text-xs text-violet-600 hover:text-violet-700"
               >
                 Use original instead
               </button>
@@ -1033,11 +1033,11 @@ Output ONLY the polished script — no explanations, no markdown.`,
           {/* Clone upload panel */}
           <div
             ref={clonePanelRef}
-            className="scroll-mt-24 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+            className="scroll-mt-24 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
           >
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-900">
-                🔬 克隆声音 · Voice Cloning
+                🔬 Voice Cloning
               </h3>
               <button
                 onClick={() => {
@@ -1047,9 +1047,9 @@ Output ONLY the polished script — no explanations, no markdown.`,
                   }
                   setCloneOpen(!cloneOpen);
                 }}
-                className="text-xs text-gray-400 hover:text-gray-600"
+                className="text-xs text-gray-400 hover:text-gray-500"
               >
-                {cloneOpen ? "收起 ▲" : "展开 ▼"}
+                {cloneOpen ? "Collapse ▲" : "Expand ▼"}
               </button>
             </div>
             {cloneOpen ? (
@@ -1057,7 +1057,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 {/* Audio upload */}
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-gray-700">
-                    音频文件（MP3/WAV，10–30 秒，清晰人声）
+                    Audio file (MP3/WAV, 10–30s, clear voice)
                   </label>
                   <input
                     ref={fileInputRef}
@@ -1072,11 +1072,11 @@ Output ONLY the polished script — no explanations, no markdown.`,
                     disabled={cloneLoading}
                     className={`flex w-full items-center gap-3 rounded-xl border-2 border-dashed px-4 py-4 text-left transition-colors disabled:opacity-50 ${
                       cloneFile
-                        ? "border-purple-300 bg-purple-50"
-                        : "border-gray-200 bg-gray-50 hover:border-purple-300 hover:bg-purple-50/50"
+                        ? "border-violet-200 bg-violet-50"
+                        : "border-gray-200 bg-gray-50 hover:border-violet-200 hover:bg-violet-50"
                     }`}
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
                       <Upload className="h-5 w-5" />
                     </span>
                     <span className="min-w-0">
@@ -1090,7 +1090,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                             {cloneDuration !== null &&
                               ` · ${cloneDuration.toFixed(1)}s${
                                 cloneDuration < 10 || cloneDuration > 30
-                                  ? " ⚠️ 建议 10–30 秒"
+                                  ? " ⚠️ 10–30s recommended"
                                   : ""
                               }`}
                           </span>
@@ -1098,10 +1098,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
                       ) : (
                         <>
                           <span className="block text-sm font-medium text-gray-700">
-                            点击选择音频文件
+                            Click to choose an audio file
                           </span>
                           <span className="block text-xs text-gray-400">
-                            支持 MP3 / WAV，最大 10MB
+                            MP3 / WAV supported, up to 10MB
                           </span>
                         </>
                       )}
@@ -1112,30 +1112,30 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 {/* Voice name */}
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-gray-700">
-                    声音名称
+                    Voice name
                   </label>
                   <input
                     type="text"
                     value={cloneName}
                     onChange={(e) => setCloneName(e.target.value)}
                     disabled={cloneLoading}
-                    placeholder="例如：我的声音"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none disabled:opacity-50"
+                    placeholder="e.g. My Voice"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none disabled:opacity-50"
                   />
                 </div>
 
                 {/* Prompt text */}
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-gray-700">
-                    音频对应的文本（prompt_text）
+                    Text spoken in the audio (prompt_text)
                   </label>
                   <textarea
                     value={clonePrompt}
                     onChange={(e) => setClonePrompt(e.target.value)}
                     disabled={cloneLoading}
                     rows={3}
-                    placeholder="输入音频中朗读的原文，帮助 AI 对齐音色…"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none resize-none disabled:opacity-50"
+                    placeholder="Paste the exact words read in the audio to help AI match the voice…"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none resize-none disabled:opacity-50"
                   />
                 </div>
 
@@ -1149,24 +1149,24 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 <button
                   onClick={handleCloneSubmit}
                   disabled={cloneLoading}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
                 >
                   {cloneLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      克隆中…
+                      Cloning…
                     </>
                   ) : (
                     <>
                       <Mic className="h-4 w-4" />
-                      开始克隆
+                      Start Cloning
                     </>
                   )}
                 </button>
               </div>
             ) : (
               <p className="text-xs text-gray-400">
-                上传 10–30 秒清晰人声，AI 将复制这个声音。
+                Upload a clear 10–30s voice recording and AI will clone it.
               </p>
             )}
           </div>
@@ -1194,33 +1194,33 @@ Output ONLY the polished script — no explanations, no markdown.`,
             <button
               onClick={handleGenerate}
               disabled={!text.trim() || isOverLimit || loading || !canGenerate(isPro)}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors shadow-sm shadow-purple-200"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors shadow-sm shadow-black/5"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <Mic className="h-5 w-5" />
               )}
-              {loading ? "Generating..." : "🎤 生成配音 Generate"}
+              {loading ? "Generating..." : "🎤 Generate Voiceover"}
             </button>
             <button
               onClick={() => handlePreview(selectedVoice)}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3.5 text-sm font-semibold text-purple-700 hover:bg-purple-100 disabled:opacity-50 transition-colors"
-              title="试听当前音色"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3.5 text-sm font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50 transition-colors"
+              title="Preview current voice"
             >
               {previewingId === selectedVoice.id ? (
                 <Square className="h-4 w-4 fill-current" />
               ) : (
                 <Play className="h-4 w-4 fill-current" />
               )}
-              试听
+              Preview
             </button>
           </div>
 
           {/* Audio player */}
           {audioUrl && (
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
               <audio ref={audioRef} controls className="w-full" src={audioUrl}>
                 Your browser does not support audio playback.
               </audio>
@@ -1228,16 +1228,16 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 <a
                   href={audioUrl}
                   download="voiceover.mp3"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700"
                 >
                   <Download className="h-4 w-4" />
-                  下载 MP3
+                  Download MP3
                 </a>
                 <button
                   onClick={() => setAudioUrl(null)}
-                  className="text-xs text-gray-400 hover:text-gray-600"
+                  className="text-xs text-gray-400 hover:text-gray-500"
                 >
-                  清除音频
+                  Clear audio
                 </button>
               </div>
             </div>
@@ -1247,30 +1247,30 @@ Output ONLY the polished script — no explanations, no markdown.`,
         {/* ══ Right column: voice detail + sliders + instruct ══ */}
         <aside className="min-w-0 space-y-4">
           {/* Current voice detail */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="mb-3 text-xs font-semibold text-gray-400">
-              当前声音 · Voice
+              Current Voice
             </p>
             <div className="flex flex-col items-center text-center">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 text-3xl shadow-sm">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-violet-100 text-3xl shadow-sm">
                 {avatarFor(selectedVoice)}
               </span>
-              <h3 className="mt-2 flex items-center gap-1 text-base font-bold text-gray-900">
+              <h3 className="mt-2 flex items-center gap-1 text-base font-semibold text-gray-900">
                 {selectedVoice.label}
                 {selectedVoice.cloned && (
-                  <span className="rounded bg-purple-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                    🤖 克隆
+                  <span className="rounded bg-gray-900 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                    🤖 Clone
                   </span>
                 )}
               </h3>
               <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1">
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
                   {LANG_META[selectedVoice.language]?.flag}{" "}
-                  {LANG_META[selectedVoice.language]?.label ?? "中文"}
+                  {LANG_META[selectedVoice.language]?.label ?? "Mandarin"}
                 </span>
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
                   {AGE_META[selectedVoice.age]?.emoji}{" "}
-                  {AGE_META[selectedVoice.age]?.label ?? "女声 Female"}
+                  {AGE_META[selectedVoice.age]?.label ?? "Female"}
                 </span>
               </div>
             </div>
@@ -1281,7 +1281,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
               </p>
             )}
             {selectedVoice.description && (
-              <p className="mt-2 text-center text-xs leading-relaxed text-gray-500">
+              <p className="mt-2 text-center text-xs leading-relaxed text-gray-400">
                 {selectedVoice.description}
               </p>
             )}
@@ -1290,7 +1290,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 {selectedVoice.tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-600"
+                    className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-600"
                   >
                     {TAG_LABELS[t] ?? t}
                   </span>
@@ -1300,19 +1300,19 @@ Output ONLY the polished script — no explanations, no markdown.`,
           </div>
 
           {/* Parameters: speed / pitch / volume / instruct */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <p className="mb-4 text-xs font-semibold text-gray-400">
-              参数调节 · Voice Settings
+              Voice Settings
             </p>
 
             {/* Speed */}
             <div className="mb-4">
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Gauge className="h-3.5 w-3.5 text-purple-500" />
-                  语速 Speed
+                  <Gauge className="h-3.5 w-3.5 text-violet-600" />
+                  Speed
                 </label>
-                <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[11px] font-semibold text-purple-700">
+                <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[11px] font-semibold text-violet-700">
                   {speed.toFixed(2)}x
                 </span>
               </div>
@@ -1323,9 +1323,9 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 step={0.05}
                 value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                className="w-full accent-purple-600"
+                className="w-full accent-violet-600"
               />
-              <div className="flex justify-between text-[9px] text-gray-300">
+              <div className="flex justify-between text-[9px] text-gray-400">
                 <span>0.5x</span>
                 <span>1.0x</span>
                 <span>1.5x</span>
@@ -1336,10 +1336,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
             <div className="mb-4">
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Activity className="h-3.5 w-3.5 text-purple-500" />
-                  语调 Pitch
+                  <Activity className="h-3.5 w-3.5 text-violet-600" />
+                  Pitch
                 </label>
-                <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[11px] font-semibold text-purple-700">
+                <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[11px] font-semibold text-violet-700">
                   {pitch > 0 ? `+${pitch}` : pitch} st
                 </span>
               </div>
@@ -1350,9 +1350,9 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 step={1}
                 value={pitch}
                 onChange={(e) => setPitch(parseInt(e.target.value, 10))}
-                className="w-full accent-purple-600"
+                className="w-full accent-violet-600"
               />
-              <div className="flex justify-between text-[9px] text-gray-300">
+              <div className="flex justify-between text-[9px] text-gray-400">
                 <span>-20</span>
                 <span>0</span>
                 <span>+20</span>
@@ -1363,10 +1363,10 @@ Output ONLY the polished script — no explanations, no markdown.`,
             <div className="mb-4">
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                  <Volume2 className="h-3.5 w-3.5 text-purple-500" />
-                  音量 Volume
+                  <Volume2 className="h-3.5 w-3.5 text-violet-600" />
+                  Volume
                 </label>
-                <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[11px] font-semibold text-purple-700">
+                <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[11px] font-semibold text-violet-700">
                   {volume}%
                 </span>
               </div>
@@ -1377,7 +1377,7 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 step={1}
                 value={volume}
                 onChange={(e) => setVolume(parseInt(e.target.value, 10))}
-                className="w-full accent-purple-600"
+                className="w-full accent-violet-600"
               />
             </div>
 
@@ -1385,35 +1385,35 @@ Output ONLY the polished script — no explanations, no markdown.`,
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="text-xs font-medium text-gray-700">
-                  Instruct 指令
+                  Instruct
                 </label>
-                <span className="text-[9px] text-gray-400">CosyVoice Instruct 模式</span>
+                <span className="text-[9px] text-gray-400">Instruct mode</span>
               </div>
               <textarea
                 value={instruct}
                 onChange={(e) => setInstruct(e.target.value)}
                 rows={3}
                 placeholder="e.g. Speak in a cheerful and enthusiastic tone, like a game show host"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs placeholder:text-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none resize-none"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none resize-none"
               />
               {instruct.trim() && (
-                <p className="mt-1 text-[10px] text-purple-500">
-                  ✨ 已启用 Instruct 模式，指令将随生成请求发送
+                <p className="mt-1 text-[10px] text-violet-600">
+                  ✨ Instruct mode enabled — instructions are sent with each generation
                 </p>
               )}
             </div>
           </div>
 
           {/* Quota — members see their plan cap, free users see free tier */}
-          <div className="space-y-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div>
-              <p className="text-xs font-medium text-purple-700">
+              <p className="text-xs font-medium text-violet-700">
                 {isPro ? "Plan" : "Free Tier"}
               </p>
-              <p className="mt-1 text-xs text-purple-600">
+              <p className="mt-1 text-xs text-violet-600">
                 {charsUsed}/{maxCharsPerTts} chars
                 {isOverLimit && (
-                  <span className="ml-1 font-medium text-red-500">
+                  <span className="ml-1 font-medium text-red-600">
                     — Over limit!
                   </span>
                 )}
@@ -1421,11 +1421,11 @@ Output ONLY the polished script — no explanations, no markdown.`,
             </div>
             {!isPro && (
               <div>
-                <p className="text-xs font-medium text-purple-700">Credits Today</p>
-                <p className="mt-1 text-xs text-purple-600">
+                <p className="text-xs font-medium text-violet-700">Credits Today</p>
+                <p className="mt-1 text-xs text-violet-600">
                   {getTodayUsed()} / {getTotalAvailable()} used
                   {getRemainingToday() <= 1 && (
-                    <span className="ml-1 font-medium text-red-500">
+                    <span className="ml-1 font-medium text-red-600">
                       — Low credits!
                     </span>
                   )}

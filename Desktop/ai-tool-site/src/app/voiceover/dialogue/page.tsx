@@ -22,7 +22,7 @@ interface AiDialogueLine {
   text: string;
 }
 
-const SAMPLE_PREVIEW_TEXT = "你好，这是我的声音预览。很高兴认识你！";
+const SAMPLE_PREVIEW_TEXT = "Hi! This is a quick preview of my voice. Nice to meet you!";
 
 function nextSpeaker(list: Speaker[]): Speaker {
   const index = list.length;
@@ -391,7 +391,7 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
             <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div>
-            <h1 className="text-lg font-bold sm:text-xl">多角色对白配音编辑器</h1>
+            <h1 className="text-lg font-bold sm:text-xl">Multi-Speaker Dialogue Editor</h1>
             <p className="mt-0.5 text-xs text-purple-100 sm:text-sm">
               Multi-Speaker Dialogue — assign a voice to each speaker, then generate &amp; merge into one audio file.
             </p>
