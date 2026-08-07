@@ -106,7 +106,7 @@ async function getGoogleUser(accessToken: string): Promise<GoogleUserInfo> {
 const SUB_KEY_PREFIX = "sub:";
 
 interface Subscription {
-  plan: string; // "pro_monthly" | "pro_yearly" | "lifetime" | "business"
+  plan: string; // "pro_monthly" | "pro_yearly" | "lifetime"
   status: "active" | "canceled" | "expired";
   checkoutId: string;
   creemOrderId?: string;
@@ -119,7 +119,6 @@ const PRODUCT_PLANS: Record<string, { plan: string; label: string }> = {
   prod_6i35t3PDKABIwpugKXq9IV: { plan: "pro_monthly", label: "Pro Monthly" },
   prod_2XbnoPWpc9Gfq7rFTR6qTW: { plan: "pro_yearly", label: "Pro Yearly" },
   prod_5SC6SMZsrRNFxhkNilsMBN: { plan: "lifetime", label: "Lifetime" },
-  prod_1Z4E00JBKlHYut6Gp1I4kG: { plan: "business", label: "Business" },
 };
 
 async function getSubscription(env: Env, email: string): Promise<Subscription | null> {
@@ -345,7 +344,7 @@ async function creemWebhook(request: Request, env: Env): Promise<Response> {
     } else if (planInfo.plan === "pro_yearly") {
       subscription.expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
     }
-    // lifetime and business don't expire
+    // lifetime doesn't expire
 
     await setSubscription(env, email, subscription);
     console.log("Subscription saved for:", email, planInfo.plan);
@@ -388,25 +387,39 @@ async function ttsGenerate(request: Request, env: Env): Promise<Response> {
     processedText = body.text.map((t) => `<speak>${t}</speak>`);
   }
 
-  const res = await fetch(TTS_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      text: processedText,
-      synthesis_param: {
-        model: engine,
-        voice: body.voice,
-        format: body.format || "MP3_24000HZ_MONO_128KBPS",
-        volume: body.volume ?? 80,
-        speechRate: body.speed ?? 1.0,
-        pitchRate: body.pitch ?? 1.0,
-        ...(body.instruct ? { instruct: body.instruct } : {}),
+  let res: Response;
+  try {
+    res = await fetch(TTS_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        text: processedText,
+        synthesis_param: {
+          model: engine,
+          voice: body.voice,
+          format: body.format || "MP3_24000HZ_MONO_128KBPS",
+          volume: body.volume ?? 80,
+          speechRate: body.speed ?? 1.0,
+          pitchRate: body.pitch ?? 1.0,
+          ...(body.instruct ? { instruct: body.instruct } : {}),
+        },
+      }),
+      // upstream can hang (history: >30s no response → CF 524 gateway timeout).
+      // 25s timeout returns a friendly error instead of a 524.
+      signal: AbortSignal.timeout(25_000),
+    });
+  } catch (err) {
+    // AbortSignal.timeout or network error — upstream unavailable
+    console.error("TTS upstream error:", err);
+    const timedOut = err instanceof Error && err.name === "TimeoutError";
+    return Response.json(
+      { error: timedOut ? "TTS service is busy, please try again later (upstream timeout)" : "TTS service unavailable, please try again" },
+      { status: 504, headers: corsHeaders }
+    );
+  }
 
   if (!res.ok) {
     return Response.json({ error: `TTS failed: ${res.status}` }, { status: 500, headers: corsHeaders });
@@ -498,12 +511,15 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
       },
       body: upstreamBody,
       // upstream upload can hang (history: >240s no response → CF 524).
-      // 25s timeout returns a friendly error instead of making users wait 30s+.
-      signal: AbortSignal.timeout(25_000),
+      // 110s timeout returns a friendly error instead of a 524.
+      signal: AbortSignal.timeout(110_000),
     });
   } catch (e) {
-    // timeout (AbortSignal.timeout) or network error — upstream unavailable
-    const isTimeout = e instanceof Error && e.name === "AbortError";
+    // AbortSignal.timeout throws TimeoutError (name="TimeoutError") in Workers;
+    // network failures are AbortError. Treat both as upstream unavailability.
+    const isTimeout =
+      e instanceof Error &&
+      (e.name === "TimeoutError" || e.name === "AbortError");
     return Response.json(
       {
         error: isTimeout
@@ -529,7 +545,31 @@ async function ttsClone(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  return Response.json({ voiceId: voiceName }, { headers: corsHeaders });
+  // The upload endpoint's response `result` is ALWAYS null — it does NOT return
+  // the created voice_id. wingray docs: the voice list endpoint (GET .../voice)
+  // returns `voice_id` (the identifier TTS actually uses) which can differ from
+  // the human-friendly `name`. Returning `name` as voiceId yields a "dead voice"
+  // (HTTP 200 + 0-byte audio) on later TTS calls. So after a successful upload we
+  // must query the list and map name → voice_id.
+  let voiceId = voiceName;
+  try {
+    const listRes = await fetch("https://maas.wing-ray.cn/api/open-apis/projects/easyllms/voice", {
+      headers: { Authorization: `Bearer ${env.FASTMODELS_API_KEY}` },
+    });
+    if (listRes.ok) {
+      const listJson = (await listRes.json()) as {
+        result?: { name?: string; voice_id?: string }[];
+      };
+      const match = (listJson.result || []).find((v) => v.name === voiceName);
+      if (match?.voice_id) {
+        voiceId = match.voice_id;
+      }
+    }
+  } catch {
+    // list lookup is best-effort; fall back to name
+  }
+
+  return Response.json({ voiceId, name: voiceName }, { headers: corsHeaders });
 }
 
 async function llmCall(request: Request, env: Env): Promise<Response> {
@@ -541,221 +581,271 @@ async function llmCall(request: Request, env: Env): Promise<Response> {
     maxTokens?: number;
   };
 
-  const res = await fetch(LLM_BASE, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: body.model || "DeepSeek-V4-Flash",
-      messages: [
-        { role: "system", content: body.systemPrompt },
-        { role: "user", content: body.userMessage },
-      ],
-      temperature: body.temperature ?? 0.7,
-      max_tokens: body.maxTokens ?? 4096,
-    }),
-  });
-
-  if (!res.ok) {
-    return Response.json({ error: `LLM call failed: ${res.status}` }, { status: 500, headers: corsHeaders });
+  let res: Response;
+  try {
+    res = await fetch(LLM_BASE, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.FASTMODELS_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: body.model || "DeepSeek-V4-Flash",
+        messages: [
+          { role: "system", content: body.systemPrompt },
+          { role: "user", content: body.userMessage },
+        ],
+        temperature: body.temperature ?? 0.7,
+        max_tokens: body.maxTokens ?? 4096,
+      }),
+      // wingray can hang; fail fast with a friendly error instead of a CF 524.
+      signal: AbortSignal.timeout(60_000),
+    });
+  } catch (e) {
+    const isTimeout =
+      e instanceof Error &&
+      (e.name === "TimeoutError" || e.name === "AbortError");
+    return Response.json(
+      {
+        error: isTimeout
+          ? "AI service is busy, please try again later (upstream timeout)"
+          : `AI call failed: ${e instanceof Error ? e.message : "Unknown error"}`,
+      },
+      { status: 504, headers: corsHeaders }
+    );
   }
 
-  const data = await res.json() as { choices: { message: { content: string } }[] };
-  return Response.json(
-    { content: data.choices?.[0]?.message?.content ?? "" },
-    { headers: corsHeaders }
-  );
+  if (!res.ok) {
+    let upstreamMsg = "";
+    try {
+      const j = (await res.json()) as { message?: string };
+      upstreamMsg = j.message || "";
+    } catch {
+      // ignore parse error
+    }
+    return Response.json(
+      { error: `AI call failed: ${res.status}${upstreamMsg ? ` (${upstreamMsg})` : ""}` },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+
+  // wingray can return HTTP 200 with an empty body — guard against it so the
+  // browser never sees a JSON-parse crash.
+  let data: { choices?: { message?: { content?: string } }[] } | null = null;
+  try {
+    data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  } catch {
+    return Response.json(
+      { error: "AI service returned an empty response, please try again" },
+      { status: 502, headers: corsHeaders }
+    );
+  }
+
+  const content = data?.choices?.[0]?.message?.content ?? "";
+  if (!content) {
+    return Response.json(
+      { error: "AI service returned no content, please try again" },
+      { status: 502, headers: corsHeaders }
+    );
+  }
+  return Response.json({ content }, { headers: corsHeaders });
 }
 
 // --- Main fetch ---
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
-    }
-
-    // Health check
-    if (url.pathname === "/api/health") {
-      return Response.json({ ok: true }, { headers: corsHeaders });
-    }
-
-    // ── Auth routes ──
-
-    // GET /api/auth/google — redirect to Google OAuth
-    if (url.pathname === "/api/auth/google" && request.method === "GET") {
-      return Response.redirect(googleAuthUrl(env), 302);
-    }
-
-    // GET /api/auth/callback — handle Google OAuth callback
-    if (url.pathname === "/api/auth/callback" && request.method === "GET") {
-      const code = url.searchParams.get("code");
-      if (!code) {
-        return Response.json({ error: "Missing code" }, { status: 400, headers: corsHeaders });
+    try {
+      const url = new URL(request.url);
+  
+      if (request.method === "OPTIONS") {
+        return new Response(null, { headers: corsHeaders });
       }
-
-      try {
-        const tokens = await exchangeCode(code, env);
-        const googleUser = await getGoogleUser(tokens.access_token);
-
-        // Check if user has an active subscription
-        const subscription = await getSubscription(env, googleUser.email);
-
-        const jwtPayload = {
-          sub: googleUser.sub,
-          email: googleUser.email,
-          name: googleUser.name,
-          picture: googleUser.picture,
-          plan: subscription?.plan || "free",
-          subscriptionStatus: subscription?.status || null,
-        };
-
-        const jwt = await signJwt(jwtPayload, env.JWT_SECRET);
-
-        // Return HTML page that stores JWT in localStorage, then redirects to dashboard
-        // This keeps JWT completely out of the URL (no query param, no hash fragment)
-        // Solves WAF blocking and mobile browser URL issues
-        const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Signing in…</title>
-<style>body{font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5}
-.spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}</style></head>
-<body><div class="spinner"></div>
-<script>
-try{localStorage.setItem("authToken",${JSON.stringify(jwt)});
-window.location.replace("/dashboard")}catch(e){window.location.replace("/dashboard")}
-</script></body></html>`;
-        return new Response(html, {
-          status: 200,
-          headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "OAuth failed";
-        return Response.json({ error: message }, { status: 500, headers: corsHeaders });
+  
+      // Health check
+      if (url.pathname === "/api/health") {
+        return Response.json({ ok: true }, { headers: corsHeaders });
       }
-    }
-
-    // GET /api/auth/me — validate Bearer token, return user info + subscription
-    if (url.pathname === "/api/auth/me" && request.method === "GET") {
-      const authHeader = request.headers.get("Authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return Response.json({ error: "Missing token" }, { status: 401, headers: corsHeaders });
+  
+      // ── Auth routes ──
+  
+      // GET /api/auth/google — redirect to Google OAuth
+      if (url.pathname === "/api/auth/google" && request.method === "GET") {
+        return Response.redirect(googleAuthUrl(env), 302);
       }
-
-      const token = authHeader.slice(7);
-      const payload = await verifyJwt(token, env.JWT_SECRET);
-      if (!payload) {
-        return Response.json({ error: "Invalid or expired token" }, { status: 401, headers: corsHeaders });
+  
+      // GET /api/auth/callback — handle Google OAuth callback
+      if (url.pathname === "/api/auth/callback" && request.method === "GET") {
+        const code = url.searchParams.get("code");
+        if (!code) {
+          return Response.json({ error: "Missing code" }, { status: 400, headers: corsHeaders });
+        }
+  
+        try {
+          const tokens = await exchangeCode(code, env);
+          const googleUser = await getGoogleUser(tokens.access_token);
+  
+          // Check if user has an active subscription
+          const subscription = await getSubscription(env, googleUser.email);
+  
+          const jwtPayload = {
+            sub: googleUser.sub,
+            email: googleUser.email,
+            name: googleUser.name,
+            picture: googleUser.picture,
+            plan: subscription?.plan || "free",
+            subscriptionStatus: subscription?.status || null,
+          };
+  
+          const jwt = await signJwt(jwtPayload, env.JWT_SECRET);
+  
+          // Return HTML page that stores JWT in localStorage, then redirects to dashboard
+          // This keeps JWT completely out of the URL (no query param, no hash fragment)
+          // Solves WAF blocking and mobile browser URL issues
+          const html = `<!DOCTYPE html>
+  <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Signing in…</title>
+  <style>body{font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5}
+  .spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}</style></head>
+  <body><div class="spinner"></div>
+  <script>
+  try{localStorage.setItem("authToken",${JSON.stringify(jwt)});
+  window.location.replace("/dashboard")}catch(e){window.location.replace("/dashboard")}
+  </script></body></html>`;
+          return new Response(html, {
+            status: 200,
+            headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders },
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "OAuth failed";
+          return Response.json({ error: message }, { status: 500, headers: corsHeaders });
+        }
       }
-
-      // Get fresh subscription status from KV
-      const email = payload.email as string;
-      const subscription = await getSubscription(env, email);
-
-      return Response.json(
-        {
-          user: {
-            sub: payload.sub,
-            email: payload.email,
-            name: payload.name,
-            picture: payload.picture,
+  
+      // GET /api/auth/me — validate Bearer token, return user info + subscription
+      if (url.pathname === "/api/auth/me" && request.method === "GET") {
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return Response.json({ error: "Missing token" }, { status: 401, headers: corsHeaders });
+        }
+  
+        const token = authHeader.slice(7);
+        const payload = await verifyJwt(token, env.JWT_SECRET);
+        if (!payload) {
+          return Response.json({ error: "Invalid or expired token" }, { status: 401, headers: corsHeaders });
+        }
+  
+        // Get fresh subscription status from KV
+        const email = payload.email as string;
+        const subscription = await getSubscription(env, email);
+  
+        return Response.json(
+          {
+            user: {
+              sub: payload.sub,
+              email: payload.email,
+              name: payload.name,
+              picture: payload.picture,
+            },
+            subscription: subscription || null,
           },
-          subscription: subscription || null,
-        },
-        { headers: corsHeaders }
+          { headers: corsHeaders }
+        );
+      }
+  
+      // ── TTS / LLM routes ──
+  
+      // TTS generate
+      if (url.pathname === "/api/tts/generate" && request.method === "POST") {
+        return await ttsGenerate(request, env);
+      }
+  
+      // List voices (wingray doc: GET .../easyllms/voice — NOT /voice/speakers)
+      if (url.pathname === "/api/tts/speakers" && request.method === "GET") {
+        const res = await fetch("https://maas.wing-ray.cn/api/open-apis/projects/easyllms/voice", {
+          headers: { Authorization: `Bearer ${env.FASTMODELS_API_KEY}` },
+        });
+        const data = await res.text();
+        return new Response(data, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+  
+      // Voice clone
+      if (url.pathname === "/api/tts/clone" && request.method === "POST") {
+        return await ttsClone(request, env);
+      }
+  
+      // LLM calls (polish, translate, pdf analyze)
+      if (url.pathname === "/api/llm" && request.method === "POST") {
+        return await llmCall(request, env);
+      }
+  
+      // ── Creem Checkout ──
+  
+      if (url.pathname === "/api/checkout" && request.method === "POST") {
+        return await creemCheckout(request, env);
+      }
+  
+      // ── Creem Verify Payment ──
+  
+      if (url.pathname === "/api/verify-payment" && request.method === "GET") {
+        return await verifyPayment(request, env);
+      }
+  
+      // ── Creem Webhook ──
+  
+      if (url.pathname === "/api/webhook" && request.method === "POST") {
+        return await creemWebhook(request, env);
+      }
+  
+      // ── Admin: manual subscription set (temporary, for testing) ──
+  
+      if (url.pathname === "/api/admin/set-subscription" && request.method === "POST") {
+        const { email, plan } = await request.json() as { email: string; plan: string };
+        if (!email || !plan) {
+          return Response.json({ error: "email and plan required" }, { status: 400, headers: corsHeaders });
+        }
+        const subscription: Subscription = {
+          plan,
+          status: "active",
+          checkoutId: "admin_manual",
+          purchasedAt: new Date().toISOString(),
+        };
+        if (plan === "pro_monthly") {
+          subscription.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        } else if (plan === "pro_yearly") {
+          subscription.expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        }
+        await setSubscription(env, email, subscription);
+        return Response.json({ ok: true, plan }, { headers: corsHeaders });
+      }
+  
+      // ── Subscription Status API ──
+  
+      if (url.pathname === "/api/subscription" && request.method === "GET") {
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return Response.json({ error: "Missing token" }, { status: 401, headers: corsHeaders });
+        }
+  
+        const token = authHeader.slice(7);
+        const payload = await verifyJwt(token, env.JWT_SECRET);
+        if (!payload) {
+          return Response.json({ error: "Invalid or expired token" }, { status: 401, headers: corsHeaders });
+        }
+  
+        const email = payload.email as string;
+        const subscription = await getSubscription(env, email);
+        return Response.json({ subscription: subscription || null }, { headers: corsHeaders });
+      }
+  
+      return Response.json({ error: "Not found" }, { status: 404, headers: corsHeaders });
+    } catch (err) {
+      console.error("Unhandled worker error:", err);
+      return Response.json(
+        { error: "Internal server error" },
+        { status: 500, headers: corsHeaders }
       );
     }
-
-    // ── TTS / LLM routes ──
-
-    // TTS generate
-    if (url.pathname === "/api/tts/generate" && request.method === "POST") {
-      return ttsGenerate(request, env);
-    }
-
-    // List speakers (debug)
-    if (url.pathname === "/api/tts/speakers" && request.method === "GET") {
-      const res = await fetch("https://maas.wing-ray.cn/api/open-apis/projects/easyllms/voice/speakers", {
-        headers: { Authorization: `Bearer ${env.FASTMODELS_API_KEY}` },
-      });
-      const data = await res.text();
-      return new Response(data, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Voice clone
-    if (url.pathname === "/api/tts/clone" && request.method === "POST") {
-      return ttsClone(request, env);
-    }
-
-    // LLM calls (polish, translate, pdf analyze)
-    if (url.pathname === "/api/llm" && request.method === "POST") {
-      return llmCall(request, env);
-    }
-
-    // ── Creem Checkout ──
-
-    if (url.pathname === "/api/checkout" && request.method === "POST") {
-      return creemCheckout(request, env);
-    }
-
-    // ── Creem Verify Payment ──
-
-    if (url.pathname === "/api/verify-payment" && request.method === "GET") {
-      return verifyPayment(request, env);
-    }
-
-    // ── Creem Webhook ──
-
-    if (url.pathname === "/api/webhook" && request.method === "POST") {
-      return creemWebhook(request, env);
-    }
-
-    // ── Admin: manual subscription set (temporary, for testing) ──
-
-    if (url.pathname === "/api/admin/set-subscription" && request.method === "POST") {
-      const { email, plan } = await request.json() as { email: string; plan: string };
-      if (!email || !plan) {
-        return Response.json({ error: "email and plan required" }, { status: 400, headers: corsHeaders });
-      }
-      const subscription: Subscription = {
-        plan,
-        status: "active",
-        checkoutId: "admin_manual",
-        purchasedAt: new Date().toISOString(),
-      };
-      if (plan === "pro_monthly") {
-        subscription.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      } else if (plan === "pro_yearly") {
-        subscription.expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-      }
-      await setSubscription(env, email, subscription);
-      return Response.json({ ok: true, plan }, { headers: corsHeaders });
-    }
-
-    // ── Subscription Status API ──
-
-    if (url.pathname === "/api/subscription" && request.method === "GET") {
-      const authHeader = request.headers.get("Authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return Response.json({ error: "Missing token" }, { status: 401, headers: corsHeaders });
-      }
-
-      const token = authHeader.slice(7);
-      const payload = await verifyJwt(token, env.JWT_SECRET);
-      if (!payload) {
-        return Response.json({ error: "Invalid or expired token" }, { status: 401, headers: corsHeaders });
-      }
-
-      const email = payload.email as string;
-      const subscription = await getSubscription(env, email);
-      return Response.json({ subscription: subscription || null }, { headers: corsHeaders });
-    }
-
-    return Response.json({ error: "Not found" }, { status: 404, headers: corsHeaders });
   },
 };
