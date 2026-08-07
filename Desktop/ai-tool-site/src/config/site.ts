@@ -85,9 +85,9 @@ export interface Voice {
 }
 
 export const cosyvoiceVoices: Voice[] = [
-  // 🌟 Standard Mandarin · adult male
+  // 🌟 Adult male voices
   { id: "longgaoseng", label: "Victor", gender: "male", age: "male", style: "Narrator", language: "zh", engine: "cosyvoice-v2", chinese: "Narration", description: "Warm narrator — great for stories and audiobooks", tags: ["narration", "audiobook", "storytelling"] },
-  // 🌟 Standard Mandarin · adult female
+  // 🌟 Adult female voices
   { id: "longyumi_v2", label: "Luna", gender: "female", age: "female", style: "Sweet", language: "zh", engine: "cosyvoice-v2", chinese: "Sweet", description: "Sweet and lively — great for marketing and vlogs", tags: ["marketing", "vlog", "entertainment"] },
   { id: "longxiaochun_v2", label: "Chloe", gender: "female", age: "female", style: "Lively", language: "zh", engine: "cosyvoice-v2", chinese: "Lively", description: "Cheerful and upbeat — great for marketing and entertainment", tags: ["marketing", "entertainment", "vlog"] },
   { id: "longxiaoxia_v2", label: "Zoe", gender: "female", age: "female", style: "Upbeat", language: "zh", engine: "cosyvoice-v2", chinese: "Upbeat", description: "Bright and sunny — great for marketing and short videos", tags: ["marketing", "tiktok", "vlog"] },

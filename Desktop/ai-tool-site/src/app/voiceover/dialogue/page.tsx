@@ -76,8 +76,8 @@ function parseDialogueScript(content: string): AiDialogueLine[] {
 export default function DialoguePage() {
   // ── State ──
   const [speakers, setSpeakers] = useState<Speaker[]>([
-    { id: "speaker_1", name: "Speaker 1", voice: "longanmin", text: "", color: "purple" },
-    { id: "speaker_2", name: "Speaker 2", voice: "longanyue", text: "", color: "blue" },
+    { id: "speaker_1", name: "Speaker 1", voice: "longgaoseng", text: "", color: "purple" },
+    { id: "speaker_2", name: "Speaker 2", voice: "longanyun", text: "", color: "blue" },
   ]);
   const [topic, setTopic] = useState("");
   const [generating, setGenerating] = useState(false);
