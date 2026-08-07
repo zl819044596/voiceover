@@ -6,6 +6,7 @@ import { SpeakerPanel, MAX_SPEAKERS, SPEAKER_COLORS, type Speaker } from "@/comp
 import { DialogueEditor } from "@/components/voiceover/dialogue-editor";
 import { DialoguePreview } from "@/components/voiceover/dialogue-preview";
 import { mergeAudioBlobs } from "@/lib/audio-merge";
+import { safeParseJson, splitTextForTts } from "@/lib/utils";
 import { cosyvoiceVoices, type Voice } from "@/config/site";
 import { incrementUsage } from "@/lib/usage-tracker";
 
@@ -194,8 +195,10 @@ export default function DialoguePage() {
         signal: AbortSignal.timeout(25000),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error || "Preview failed");
+        const parsed = await safeParseJson<{ error?: string }>(res);
+        throw new Error(
+          parsed.ok ? parsed.data?.error || "Preview failed" : parsed.error
+        );
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -273,11 +276,14 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
         }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error || "AI generation failed");
+        const parsed = await safeParseJson<{ error?: string }>(res);
+        throw new Error(
+          parsed.ok ? parsed.data?.error || "AI generation failed" : parsed.error
+        );
       }
-      const data = await res.json();
-      const lines = parseDialogueScript(data.content ?? "");
+      const parsed = await safeParseJson<{ content?: string }>(res);
+      if (!parsed.ok) throw new Error(parsed.error);
+      const lines = parseDialogueScript(parsed.data?.content ?? "");
       if (lines.length === 0) throw new Error("AI returned no dialogue. Try a different topic.");
 
       setSpeakers((prev) => {
@@ -321,50 +327,63 @@ Output ONLY a JSON array in this exact format (no code fences, no extra text):
       for (let i = 0; i < active.length; i++) {
         const speaker = active[i];
         setProgress({ done: i, total: active.length });
-        const res = await fetch("/api/tts/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: [speaker.text],
-            voice: speaker.voice,
-            engine: "cosyvoice-v2",
-            speed,
-            volume,
-            pitch: Math.pow(2, pitch / 12),
-            enableSsml: false,
-            ...(speaker.instruct?.trim() ? { instruct: speaker.instruct.trim() } : {}),
-          }),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => null);
-          throw new Error(err?.error || `TTS failed for ${speaker.name}`);
-        }
-        const blob = await res.blob();
-        // Validate the segment actually contains decodable audio — wingray
-        // occasionally returns 200 with a corrupt/empty body; catching it here
-        // avoids a silent "missing speaker" merged result.
-        try {
-          const probeCtx = new OfflineAudioContext(1, 1, 24000);
-          const probeBuf = await blob.arrayBuffer();
-          const probe = await probeCtx.decodeAudioData(probeBuf);
-          // wingray occasionally returns 200 with a decodable-but-silent body
-          // (network degradation). Check both duration and actual energy so a
-          // silent segment fails loudly instead of silently vanishing.
-          const channel = probe.getChannelData(0);
-          let peak = 0;
-          for (let k = 0; k < channel.length; k += 4) {
-            const v = Math.abs(channel[k]);
-            if (v > peak) peak = v;
+        // A speaker's text can exceed the ~200-char single-request ceiling
+        // (AI generates 6–12 lines merged into one speaker). Split per speaker,
+        // synthesize each chunk, then merge them into that speaker's segment.
+        const chunks = splitTextForTts(speaker.text);
+        const speakerBlobs: Blob[] = [];
+        for (const chunk of chunks) {
+          const res = await fetch("/api/tts/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: [chunk],
+              voice: speaker.voice,
+              engine: "cosyvoice-v2",
+              speed,
+              volume,
+              pitch: Math.pow(2, pitch / 12),
+              enableSsml: false,
+              ...(speaker.instruct?.trim() ? { instruct: speaker.instruct.trim() } : {}),
+            }),
+          });
+          if (!res.ok) {
+            const parsed = await safeParseJson<{ error?: string }>(res);
+            throw new Error(
+              parsed.ok
+                ? parsed.data?.error || `TTS failed for ${speaker.name}`
+                : parsed.error
+            );
           }
-          if (probe.duration < 0.05 || peak < 0.005) throw new Error("empty audio");
-        } catch {
-          throw new Error(`TTS returned empty audio for ${speaker.name}. Please try again.`);
+          const blob = await res.blob();
+          // Validate the segment actually contains decodable audio — wingray
+          // occasionally returns 200 with a corrupt/empty body; catching it here
+          // avoids a silent "missing speaker" merged result.
+          try {
+            const probeCtx = new OfflineAudioContext(1, 1, 24000);
+            const probeBuf = await blob.arrayBuffer();
+            const probe = await probeCtx.decodeAudioData(probeBuf);
+            // wingray occasionally returns 200 with a decodable-but-silent body
+            // (network degradation). Check both duration and actual energy so a
+            // silent segment fails loudly instead of silently vanishing.
+            const channel = probe.getChannelData(0);
+            let peak = 0;
+            for (let k = 0; k < channel.length; k += 4) {
+              const v = Math.abs(channel[k]);
+              if (v > peak) peak = v;
+            }
+            if (probe.duration < 0.05 || peak < 0.005) throw new Error("empty audio");
+          } catch {
+            throw new Error(`TTS returned empty audio for ${speaker.name}. Please try again.`);
+          }
+          speakerBlobs.push(blob);
         }
-        blobs.push(blob);
+        const speakerBlob = speakerBlobs.length === 1 ? speakerBlobs[0] : await mergeAudioBlobs(speakerBlobs);
+        blobs.push(speakerBlob);
         audios.push({
           id: speaker.id,
           name: speaker.name || `Speaker ${i + 1}`,
-          url: URL.createObjectURL(blob),
+          url: URL.createObjectURL(speakerBlob),
         });
       }
 

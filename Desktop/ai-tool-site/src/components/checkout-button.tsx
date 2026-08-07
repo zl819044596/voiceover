@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { safeParseJson } from "@/lib/utils";
 
 interface CheckoutButtonProps {
   productId: string;
@@ -40,7 +41,17 @@ export function CheckoutButton({ productId, label, featured }: CheckoutButtonPro
         }),
       });
 
-      const data = await res.json();
+      const parsed = await safeParseJson<{
+        checkoutUrl?: string;
+        checkoutId?: string;
+        error?: string;
+      }>(res);
+      if (!parsed.ok) {
+        setError(parsed.error);
+        setLoading(false);
+        return;
+      }
+      const data = parsed.data;
 
       if (data.checkoutUrl) {
         // Store checkoutId for payment verification on return

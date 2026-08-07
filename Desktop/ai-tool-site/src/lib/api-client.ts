@@ -1,4 +1,5 @@
 import { apiConfig, models } from "@/config/site";
+import { safeParseJson } from "@/lib/utils";
 
 // This runs in Cloudflare Worker or Next.js API routes (server-side only).
 // Never expose the API key to the client.
@@ -106,10 +107,13 @@ export async function chatCompletion(params: {
     throw new Error(`LLM call failed: ${res.status}`);
   }
 
-  const data = (await res.json()) as {
+  const parsed = await safeParseJson<{
     choices: { message: { content: string } }[];
-  };
-  return data.choices[0]?.message?.content ?? "";
+  }>(res);
+  if (!parsed.ok) {
+    throw new Error(parsed.error);
+  }
+  return parsed.data.choices[0]?.message?.content ?? "";
 }
 
 export async function polishScript(script: string): Promise<string> {

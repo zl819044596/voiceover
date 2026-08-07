@@ -26,8 +26,100 @@ export function estimateChars(text: string): number {
   return count;
 }
 
+/**
+ * Split long text into TTS-safe chunks.
+ *
+ * wingray TTS synthesizes at ~0.12s/char (measured: 100 chars ≈ 13s, 200 chars
+ * ≈ 24s), and the proxy aborts at 25s to avoid CF 524s. A single request above
+ * ~200 chars reliably times out. Splitting keeps every request well under the
+ * timeout; the frontend merges the per-chunk MP3s back into one file.
+ *
+ * Chunks are cut at sentence boundaries (。！？!?.\n) where possible, and hard-
+ * split mid-sentence only when a single sentence itself exceeds the limit.
+ * Default maxWeight 300 (≈150 Chinese chars ≈ 18s — safe margin under 25s).
+ */
+export function splitTextForTts(text: string, maxWeight = 300): string[] {
+  const clean = text.replace(/\r\n/g, "\n").trim();
+  if (!clean) return [];
+
+  // Keep sentence delimiters attached to their sentence.
+  const sentences = clean.split(/(?<=[。！？!?.\n])/).filter((s) => s.trim());
+  const chunks: string[] = [];
+  let current = "";
+  let weight = 0;
+
+  const flush = () => {
+    if (current.trim()) {
+      chunks.push(current.trim());
+      current = "";
+      weight = 0;
+    }
+  };
+
+  for (const sentence of sentences) {
+    const w = estimateChars(sentence);
+    if (weight + w > maxWeight && current) flush();
+
+    if (w > maxWeight) {
+      // Single sentence too long — hard-split it on character boundaries,
+      // preferring punctuation commas as break points.
+      let rest = sentence;
+      while (estimateChars(rest) > maxWeight) {
+        let cut = maxWeight;
+        // Prefer breaking at a comma within the allowed window.
+        const commaIdx = rest.slice(0, Math.floor(maxWeight * 1.5)).lastIndexOf("，");
+        if (commaIdx > maxWeight / 2) cut = commaIdx + 1;
+        const piece = rest.slice(0, cut);
+        chunks.push(piece.trim());
+        rest = rest.slice(cut);
+      }
+      if (rest.trim()) chunks.push(rest.trim());
+      current = "";
+      weight = 0;
+    } else {
+      current += sentence;
+      weight += w;
+    }
+  }
+  flush();
+  return chunks;
+}
+
 export function classNames(...inputs: (string | undefined | false | null)[]): string {
   return inputs.filter(Boolean).join(" ");
+}
+
+export type SafeJsonResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+
+/**
+ * Parse a fetch Response body as JSON without throwing native TypeErrors.
+ *
+ * res.json() throws "Unexpected end of JSON input" when the server returns an
+ * empty or non-JSON body (Cloudflare 502/504 timeouts, worker crashes, etc.).
+ * That native error leaks an English technical message straight to users.
+ * This helper reads the body as text first and returns a friendly,
+ * user-facing Chinese error instead, so callers can surface it directly.
+ */
+export async function safeParseJson<T = unknown>(
+  res: Response
+): Promise<SafeJsonResult<T>> {
+  let text: string;
+  try {
+    text = await res.text();
+  } catch {
+    return { ok: false, error: "无法读取服务响应，请稍后重试" };
+  }
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return { ok: false, error: "服务返回了空响应，请稍后重试" };
+  }
+  try {
+    return { ok: true, data: JSON.parse(trimmed) as T };
+  } catch {
+    return { ok: false, error: "服务响应格式异常，请稍后重试" };
+  }
 }
 
 // Build SSML text with emotion-specific prosody

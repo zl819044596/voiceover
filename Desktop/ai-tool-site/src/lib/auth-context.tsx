@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { safeParseJson } from "@/lib/utils";
 
 interface User {
   sub: string;
@@ -46,7 +47,6 @@ const PLAN_LABELS: Record<string, string> = {
   pro_monthly: "Pro Monthly",
   pro_yearly: "Pro Yearly",
   lifetime: "Lifetime",
-  business: "Business",
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -101,9 +101,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${storedToken}` },
     })
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw new Error("Invalid token");
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Invalid token");
+        const parsed = await safeParseJson<{
+          user: User;
+          subscription: Subscription;
+        }>(res);
+        if (!parsed.ok) throw new Error(parsed.error);
+        return parsed.data;
       })
       .then((data) => {
         setUser(data.user);
@@ -127,8 +132,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { Authorization: `Bearer ${storedToken}` },
       });
       if (res.ok) {
-        const data = await res.json();
-        setSubscription(data.subscription);
+        const parsed = await safeParseJson<{ subscription?: Subscription }>(res);
+        if (parsed.ok) setSubscription(parsed.data.subscription ?? null);
       }
     } catch {
       // ignore network errors during poll

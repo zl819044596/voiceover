@@ -29,7 +29,8 @@ import {
   type Voice,
   type AgeGroup,
 } from "@/config/site";
-import { estimateChars } from "@/lib/utils";
+import { estimateChars, safeParseJson, splitTextForTts } from "@/lib/utils";
+import { mergeAudioBlobs } from "@/lib/audio-merge";
 import {
   canGenerate,
   incrementUsage,
@@ -37,7 +38,6 @@ import {
   getTotalAvailable,
   getTodayUsed,
 } from "@/lib/usage-tracker";
-import { ShareBonus } from "@/components/share-bonus";
 import { useAuth } from "@/lib/auth-context";
 
 const CLONED_VOICES_KEY = "voiceover-cloned-voices";
@@ -194,6 +194,7 @@ export default function VoiceoverPage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioExt, setAudioExt] = useState<"mp3" | "wav">("mp3");
   const [error, setError] = useState("");
   const [polishedText, setPolishedText] = useState("");
   const [showCreditsExhausted, setShowCreditsExhausted] = useState(false);
@@ -375,8 +376,10 @@ export default function VoiceoverPage() {
         signal: AbortSignal.timeout(25000),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error || "Preview failed");
+        const parsed = await safeParseJson<{ error?: string }>(res);
+        throw new Error(
+          parsed.ok ? parsed.data?.error || "Preview failed" : parsed.error
+        );
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -426,30 +429,63 @@ export default function VoiceoverPage() {
 
     try {
       const sourceText = polishedText || text;
-
-      const res = await fetch("/api/tts/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: [sourceText],
-          voice,
-          engine: "cosyvoice-v2",
-          speed,
-          volume,
-          pitch: Math.pow(2, pitch / 12),
-          enableSsml: false,
-          ...(instruct.trim() ? { instruct: instruct.trim() } : {}),
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Generation failed");
+      // wingray synthesizes at ~0.12s/char — a single request over ~200 chars
+      // hits the 25s proxy timeout (measured: 330 chars reliably 504s).
+      // Split long text into chunks, synthesize each, then merge into one file.
+      const chunks = splitTextForTts(sourceText);
+      if (chunks.length === 0) {
+        setError("Please enter some text to generate.");
+        return;
       }
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const blobs: Blob[] = [];
+      for (const chunk of chunks) {
+        const res = await fetch("/api/tts/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: [chunk],
+            voice,
+            engine: "cosyvoice-v2",
+            speed,
+            volume,
+            pitch: Math.pow(2, pitch / 12),
+            enableSsml: false,
+            ...(instruct.trim() ? { instruct: instruct.trim() } : {}),
+          }),
+        });
+
+        if (!res.ok) {
+          const parsed = await safeParseJson<{ error?: string }>(res);
+          throw new Error(
+            parsed.ok ? parsed.data?.error || "Generation failed" : parsed.error
+          );
+        }
+
+        const blob = await res.blob();
+        // Reject silent/empty segments so a corrupt chunk fails loudly
+        // instead of producing a partially silent merged file.
+        try {
+          const probeCtx = new OfflineAudioContext(1, 1, 24000);
+          const probeBuf = await blob.arrayBuffer();
+          const probe = await probeCtx.decodeAudioData(probeBuf);
+          const channel = probe.getChannelData(0);
+          let peak = 0;
+          for (let k = 0; k < channel.length; k += 4) {
+            const v = Math.abs(channel[k]);
+            if (v > peak) peak = v;
+          }
+          if (probe.duration < 0.05 || peak < 0.005) throw new Error("empty audio");
+        } catch {
+          throw new Error("TTS returned empty audio. Please try again.");
+        }
+        blobs.push(blob);
+      }
+
+      const merged = blobs.length === 1 ? blobs[0] : await mergeAudioBlobs(blobs);
+      const url = URL.createObjectURL(merged);
       setAudioUrl(url);
+      setAudioExt(blobs.length === 1 ? "mp3" : "wav");
       incrementUsage();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -483,9 +519,15 @@ Output ONLY the polished script — no explanations, no markdown.`,
           temperature: 0.8,
         }),
       });
-      const data = await res.json();
-      if (data.content) {
-        setPolishedText(data.content);
+      const parsed = await safeParseJson<{ content?: string }>(res);
+      if (!parsed.ok) {
+        // Polish is non-critical — surface the friendly error instead of
+        // crashing on a native JSON parse TypeError.
+        setError(parsed.error);
+        return;
+      }
+      if (parsed.data.content) {
+        setPolishedText(parsed.data.content);
       }
     } catch {
       // Polish is non-critical
@@ -586,11 +628,17 @@ Output ONLY the polished script — no explanations, no markdown.`,
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Cloning failed, please try again");
+        const parsed = await safeParseJson<{ error?: string }>(res);
+        throw new Error(
+          parsed.ok
+            ? parsed.data?.error || "Cloning failed, please try again"
+            : parsed.error
+        );
       }
 
-      const data = await res.json();
+      const parsed = await safeParseJson<{ voiceId?: string }>(res);
+      if (!parsed.ok) throw new Error(parsed.error);
+      const data = parsed.data;
       const newVoice: Voice = {
         id: data.voiceId || cloneName.trim(),
         label: cloneName.trim(),
@@ -1030,154 +1078,12 @@ Output ONLY the polished script — no explanations, no markdown.`,
             </div>
           )}
 
-          {/* Clone upload panel */}
-          <div
-            ref={clonePanelRef}
-            className="scroll-mt-24 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-900">
-                🔬 Voice Cloning
-              </h3>
-              <button
-                onClick={() => {
-                  if (!isLoggedIn) {
-                    login();
-                    return;
-                  }
-                  setCloneOpen(!cloneOpen);
-                }}
-                className="text-xs text-gray-400 hover:text-gray-500"
-              >
-                {cloneOpen ? "Collapse ▲" : "Expand ▼"}
-              </button>
-            </div>
-            {cloneOpen ? (
-              <div className="space-y-3">
-                {/* Audio upload */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-gray-700">
-                    Audio file (MP3/WAV, 10–30s, clear voice)
-                  </label>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
-                    className="hidden"
-                    onChange={(e) => handleCloneFile(e.target.files?.[0] ?? null)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={cloneLoading}
-                    className={`flex w-full items-center gap-3 rounded-xl border-2 border-dashed px-4 py-4 text-left transition-colors disabled:opacity-50 ${
-                      cloneFile
-                        ? "border-violet-200 bg-violet-50"
-                        : "border-gray-200 bg-gray-50 hover:border-violet-200 hover:bg-violet-50"
-                    }`}
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
-                      <Upload className="h-5 w-5" />
-                    </span>
-                    <span className="min-w-0">
-                      {cloneFile ? (
-                        <>
-                          <span className="block truncate text-sm font-medium text-gray-900">
-                            {cloneFile.name}
-                          </span>
-                          <span className="block text-xs text-gray-400">
-                            {(cloneFile.size / 1024 / 1024).toFixed(1)} MB
-                            {cloneDuration !== null &&
-                              ` · ${cloneDuration.toFixed(1)}s${
-                                cloneDuration < 10 || cloneDuration > 30
-                                  ? " ⚠️ 10–30s recommended"
-                                  : ""
-                              }`}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="block text-sm font-medium text-gray-700">
-                            Click to choose an audio file
-                          </span>
-                          <span className="block text-xs text-gray-400">
-                            MP3 / WAV supported, up to 10MB
-                          </span>
-                        </>
-                      )}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Voice name */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-gray-700">
-                    Voice name
-                  </label>
-                  <input
-                    type="text"
-                    value={cloneName}
-                    onChange={(e) => setCloneName(e.target.value)}
-                    disabled={cloneLoading}
-                    placeholder="e.g. My Voice"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none disabled:opacity-50"
-                  />
-                </div>
-
-                {/* Prompt text */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-gray-700">
-                    Text spoken in the audio (prompt_text)
-                  </label>
-                  <textarea
-                    value={clonePrompt}
-                    onChange={(e) => setClonePrompt(e.target.value)}
-                    disabled={cloneLoading}
-                    rows={3}
-                    placeholder="Paste the exact words read in the audio to help AI match the voice…"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none resize-none disabled:opacity-50"
-                  />
-                </div>
-
-                {cloneError && (
-                  <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{cloneError}</span>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleCloneSubmit}
-                  disabled={cloneLoading}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
-                >
-                  {cloneLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Cloning…
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-4 w-4" />
-                      Start Cloning
-                    </>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400">
-                Upload a clear 10–30s voice recording and AI will clone it.
-              </p>
-            )}
-          </div>
-
           {/* Credits exhausted */}
           {showCreditsExhausted && (
             <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <p className="text-sm font-medium text-amber-800">
-                Credit exhausted — share to get more!
+                Credit exhausted — please try again tomorrow or upgrade to Pro.
               </p>
-              <ShareBonus />
             </div>
           )}
 
@@ -1227,11 +1133,11 @@ Output ONLY the polished script — no explanations, no markdown.`,
               <div className="mt-3 flex items-center gap-4">
                 <a
                   href={audioUrl}
-                  download="voiceover.mp3"
+                  download={`voiceover.${audioExt}`}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700"
                 >
                   <Download className="h-4 w-4" />
-                  Download MP3
+                  Download {audioExt.toUpperCase()}
                 </a>
                 <button
                   onClick={() => setAudioUrl(null)}
@@ -1404,6 +1310,147 @@ Output ONLY the polished script — no explanations, no markdown.`,
             </div>
           </div>
 
+          {/* Voice Cloning */}
+          <div
+            ref={clonePanelRef}
+            className="scroll-mt-24 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">
+                🔬 Voice Cloning
+              </h3>
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    login();
+                    return;
+                  }
+                  setCloneOpen(!cloneOpen);
+                }}
+                className="text-xs text-gray-400 hover:text-gray-500"
+              >
+                {cloneOpen ? "Collapse ▲" : "Expand ▼"}
+              </button>
+            </div>
+            {cloneOpen ? (
+              <div className="space-y-3">
+                {/* Audio upload */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-700">
+                    Audio file (MP3/WAV, 10–30s, clear voice)
+                  </label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
+                    className="hidden"
+                    onChange={(e) => handleCloneFile(e.target.files?.[0] ?? null)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={cloneLoading}
+                    className={`flex w-full items-center gap-3 rounded-xl border-2 border-dashed px-4 py-4 text-left transition-colors disabled:opacity-50 ${
+                      cloneFile
+                        ? "border-violet-200 bg-violet-50"
+                        : "border-gray-200 bg-gray-50 hover:border-violet-200 hover:bg-violet-50"
+                    }`}
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+                      <Upload className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0">
+                      {cloneFile ? (
+                        <>
+                          <span className="block truncate text-sm font-medium text-gray-900">
+                            {cloneFile.name}
+                          </span>
+                          <span className="block text-xs text-gray-400">
+                            {(cloneFile.size / 1024 / 1024).toFixed(1)} MB
+                            {cloneDuration !== null &&
+                              ` · ${cloneDuration.toFixed(1)}s${
+                                cloneDuration < 10 || cloneDuration > 30
+                                  ? " ⚠️ 10–30s recommended"
+                                  : ""
+                              }`}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="block text-sm font-medium text-gray-700">
+                            Click to choose an audio file
+                          </span>
+                          <span className="block text-xs text-gray-400">
+                            MP3 / WAV supported, up to 10MB
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Voice name */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-700">
+                    Voice name
+                  </label>
+                  <input
+                    type="text"
+                    value={cloneName}
+                    onChange={(e) => setCloneName(e.target.value)}
+                    disabled={cloneLoading}
+                    placeholder="e.g. My Voice"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Prompt text */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-gray-700">
+                    Text spoken in the audio (prompt_text)
+                  </label>
+                  <textarea
+                    value={clonePrompt}
+                    onChange={(e) => setClonePrompt(e.target.value)}
+                    disabled={cloneLoading}
+                    rows={3}
+                    placeholder="Paste the exact words read in the audio to help AI match the voice…"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none resize-none disabled:opacity-50"
+                  />
+                </div>
+
+                {cloneError && (
+                  <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{cloneError}</span>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleCloneSubmit}
+                  disabled={cloneLoading}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                >
+                  {cloneLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Cloning…
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-4 w-4" />
+                      Start Cloning
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400">
+                Upload a clear 10–30s voice recording and AI will clone it.
+              </p>
+            )}
+          </div>
+
           {/* Quota — members see their plan cap, free users see free tier */}
           <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div>
@@ -1432,7 +1479,6 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 </p>
               </div>
             )}
-            <ShareBonus />
           </div>
         </aside>
       </div>
