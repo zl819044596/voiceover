@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactEmail } from "@/components/contact-email";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -43,7 +44,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-gray-900">4. Payment and Refunds</h2>
           <p className="mt-2">
             Paid subscriptions are billed in advance. Refund requests are handled on a
-            case-by-case basis. Contact zl18672545321@gmail.com for refund inquiries.
+            case-by-case basis. Contact <ContactEmail className="text-purple-600 hover:underline" /> for refund inquiries.
           </p>
         </section>
 
@@ -68,9 +69,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-gray-900">7. Contact</h2>
           <p className="mt-2">
             Questions? Reach out at{" "}
-            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
-              zl18672545321@gmail.com
-            </a>
+            <ContactEmail className="text-purple-600 hover:underline" />
             .
           </p>
         </section>

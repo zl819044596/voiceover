@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactEmail } from "@/components/contact-email";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -48,9 +49,7 @@ export default function PrivacyPage() {
           <p className="mt-2">
             You have the right to access, correct, or delete your personal data. See our
             GDPR page for details, or contact us at{" "}
-            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
-              zl18672545321@gmail.com
-            </a>
+            <ContactEmail className="text-purple-600 hover:underline" />
             .
           </p>
         </section>
@@ -59,9 +58,7 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-gray-900">5. Contact</h2>
           <p className="mt-2">
             For privacy-related inquiries:{" "}
-            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
-              zl18672545321@gmail.com
-            </a>
+            <ContactEmail className="text-purple-600 hover:underline" />
           </p>
         </section>
       </div>

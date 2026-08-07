@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactEmail } from "@/components/contact-email";
 
 export const metadata: Metadata = {
   title: "GDPR Compliance",
@@ -55,9 +56,7 @@ export default function GdprPage() {
           <h2 className="text-lg font-semibold text-gray-900">Contact DPO</h2>
           <p className="mt-2">
             For GDPR-related requests, contact our Data Protection Officer at{" "}
-            <a href="mailto:zl18672545321@gmail.com" className="text-purple-600 hover:underline">
-              zl18672545321@gmail.com
-            </a>
+            <ContactEmail className="text-purple-600 hover:underline" />
             . We will respond within 30 days.
           </p>
         </section>

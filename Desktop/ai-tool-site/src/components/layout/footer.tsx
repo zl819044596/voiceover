@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContactEmail } from "@/components/contact-email";
 
 export function Footer() {
   return (
@@ -59,9 +60,7 @@ export function Footer() {
             <h4 className="text-sm font-semibold text-gray-900">Contact</h4>
             <ul className="mt-3 space-y-2">
               <li>
-                <a href="mailto:zl18672545321@gmail.com" className="text-sm text-gray-500 hover:text-gray-800">
-                  zl18672545321@gmail.com
-                </a>
+                <ContactEmail className="text-sm text-gray-500 hover:text-gray-800" />
               </li>
             </ul>
           </div>

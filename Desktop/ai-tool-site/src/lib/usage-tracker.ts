@@ -41,7 +41,7 @@ export function addShareBonus(): void {
 
 export function getTotalAvailable(): number {
   const base = 3; // freeQuota.dailyTtsCount
-  return base + getBonusCredits();
+  return base;
 }
 
 export function getRemainingToday(): number {

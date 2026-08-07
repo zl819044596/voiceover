@@ -12,6 +12,7 @@ import {
   Languages,
   Mic,
   MonitorPlay,
+  Play,
   Podcast,
   Sparkles,
   Users,
@@ -45,6 +46,13 @@ const faqs = [
     q: "What happens when I run out of characters?",
     a: "The free plan resets monthly with 10,000 characters. Upgrade to Pro for more monthly quota, or grab Lifetime for a one-time payment with generous limits.",
   },
+];
+
+// Deterministic waveform bar heights for the hero mock (avoids hydration mismatch).
+const waveHeights = [
+  8, 14, 22, 30, 36, 26, 18, 28, 34, 22, 14, 10, 18, 26, 34, 38, 30, 20, 24,
+  32, 28, 16, 12, 20, 30, 36, 26, 16, 22, 32, 38, 30, 20, 14, 24, 34, 28, 18,
+  12, 22, 30, 36, 26, 18, 26, 34, 30, 22, 14, 24,
 ];
 
 // Voices shown in the hero product window (pure CSS mock, no screenshot).
@@ -111,8 +119,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Hero visual — Qwen-Image generated artwork */}
-          <div className="relative mx-auto mt-16 max-w-5xl">
+          {/* Hero visual — pure CSS product mock (no image asset) */}
+          <div className="relative mx-auto mt-12 max-w-4xl">
             <div aria-hidden className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-gradient-to-br from-violet-200/40 via-transparent to-transparent blur-2xl" />
             <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_4px_rgba(0,0,0,0.04),0_20px_40px_rgba(0,0,0,0.08)]">
               <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-3">
@@ -123,33 +131,88 @@ export default function HomePage() {
                   voiceover.getfitai.io/voiceover
                 </span>
               </div>
-              <div className="relative">
-                <Image
-                  src="/images/hero.png"
-                  alt="AI voiceover studio — waveform and audio player illustration"
-                  width={1024}
-                  height={1024}
-                  priority
-                  className="h-auto w-full object-cover"
-                />
-                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4 sm:p-6">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-gray-900 shadow-lg">
-                      <PlayGlyph />
-                    </span>
-                    <div className="hidden h-10 min-w-0 flex-1 items-center gap-[3px] px-1 sm:flex" aria-hidden>
-                      {Array.from({ length: 28 }).map((_, i) => (
+
+              {/* App body: voices sidebar + editor */}
+              <div className="grid sm:grid-cols-[12.5rem_1fr]">
+                {/* Voice list */}
+                <div className="hidden border-r border-gray-100 bg-gray-50/60 p-3 sm:block">
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Voices
+                  </div>
+                  <div className="space-y-1">
+                    {mockVoices.map((v) => (
+                      <div
+                        key={v.name}
+                        className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${
+                          v.active
+                            ? "bg-white shadow-[0_0_0_1px_rgba(139,92,246,0.25),0_2px_6px_rgba(139,92,246,0.08)] ring-1 ring-violet-200"
+                            : "opacity-70"
+                        }`}
+                      >
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-50 text-sm">
+                          {v.emoji}
+                        </span>
+                        <span className="min-w-0">
+                          <span className={`block truncate text-[13px] font-medium ${v.active ? "text-violet-700" : "text-gray-600"}`}>
+                            {v.name}
+                          </span>
+                          <span className="block truncate text-[11px] text-gray-400">{v.tag}</span>
+                        </span>
+                        {v.active && <AudioLines className="ml-auto h-3.5 w-3.5 shrink-0 text-violet-500" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Editor */}
+                <div className="flex flex-col p-4 sm:p-5">
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5">
+                    <div className="mb-2 flex items-center justify-between text-[11px] text-gray-400">
+                      <span className="font-medium">Script</span>
+                      <span>Mandarin · Luna</span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-gray-600">
+                      Welcome to the AI voice studio. Turn any text into natural
+                      speech in just a few seconds.
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-gray-400">
+                      Type your script, pick a voice, and export in one click — no signup needed.
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white shadow-[0_4px_14px_rgba(139,92,246,0.4)]">
+                      <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                    </div>
+                    <div className="flex h-9 flex-1 items-center gap-[3px]">
+                      {waveHeights.map((h, i) => (
                         <span
                           key={i}
-                          className="wave-bar h-8 flex-1 rounded-full bg-white/80"
-                          style={{ animationDelay: `${(i * 0.08).toFixed(2)}s` }}
+                          className={`w-[3px] rounded-full ${
+                            i < 34
+                              ? "bg-gradient-to-t from-violet-500 to-fuchsia-400"
+                              : "bg-gray-200"
+                          }`}
+                          style={{ height: `${h * 1.5}px` }}
                         />
                       ))}
                     </div>
+                    <div className="hidden shrink-0 text-right sm:block">
+                      <div className="text-sm font-medium tabular-nums text-gray-900">0:18</div>
+                      <div className="text-xs tabular-nums text-gray-400">/ 0:24</div>
+                    </div>
                   </div>
-                  <span className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm ring-1 ring-white/25">
-                    ▶ 1:04
-                  </span>
+
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+                      AI polish · speed 1.0× · emotion calm
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white">
+                      <Download className="h-3.5 w-3.5" />
+                      Export MP3
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -351,7 +414,7 @@ export default function HomePage() {
             />
           </div>
           <p className="mt-8 text-center text-sm text-gray-500">
-            Plus Pro Yearly and Business (with API access) plans — see{" "}
+            Plus Pro Yearly — see{" "}
             <Link href="/pricing" className="font-medium text-violet-600 hover:text-violet-700 hover:underline">
               full pricing
             </Link>
@@ -600,13 +663,5 @@ function PricingCard({
         <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
-  );
-}
-
-function PlayGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-4 w-4" aria-hidden>
-      <path d="M8 5.14v13.72c0 .82.9 1.33 1.6.9l11.02-6.86a1.06 1.06 0 0 0 0-1.8L9.6 4.24A1.06 1.06 0 0 0 8 5.14z" />
-    </svg>
   );
 }

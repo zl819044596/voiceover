@@ -36,7 +36,7 @@ export default function VoiceoverLayout({ children }: { children: React.ReactNod
             name: "Is Voiceover AI free to use?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes. The free plan gives you 10,000 characters per month with no signup required. Paid plans (Pro, Lifetime, and Business) offer higher character limits and API access.",
+              text: "Yes. The free plan gives you 10,000 characters per month with no signup required. Paid plans (Pro and Lifetime) offer higher character limits.",
             },
           },
           {

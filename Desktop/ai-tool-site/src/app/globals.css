@@ -20,29 +20,6 @@ body {
   color: #111111;
 }
 
-/* ── Homepage hero mockup: animated waveform bars ─────────────────────────── */
-@keyframes wave-pulse {
-  0%,
-  100% {
-    transform: scaleY(0.35);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-.wave-bar {
-  transform-origin: center;
-  animation: wave-pulse 1.15s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wave-bar {
-    animation: none;
-    transform: scaleY(0.55);
-  }
-}
-
 /* ── ElevenLabs-style text gradient (light) ───────────────────────────────── */
 .text-gradient {
   background: linear-gradient(100deg, #111111 20%, #7c3aed 60%, #a78bfa 100%);

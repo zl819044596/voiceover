@@ -62,21 +62,6 @@ const plans = [
       "Limited to 500 seats",
     ],
   },
-  {
-    name: "Business",
-    price: "$49",
-    period: "per month",
-    cta: "Subscribe Business",
-    productId: "prod_1Z4E00JBKlHYut6Gp1I4kG",
-    features: [
-      "Unlimited Projects",
-      "1,000,000 Characters per Month",
-      "MP3 Downloading",
-      "No watermark",
-      "API Access",
-      "Custom Support",
-    ],
-  },
 ];
 
 export default function PricingPage() {
@@ -112,7 +97,6 @@ export default function PricingPage() {
       prod_6i35t3PDKABIwpugKXq9IV: "pro_monthly",
       prod_2XbnoPWpc9Gfq7rFTR6qTW: "pro_yearly",
       prod_5SC6SMZsrRNFxhkNilsMBN: "lifetime",
-      prod_1Z4E00JBKlHYut6Gp1I4kG: "business",
     };
     const thisPlanName = planIdMap[plan.productId];
 

@@ -140,7 +140,6 @@ export const planQuotas: Record<
   pro_monthly: { label: "Pro Monthly", monthlyChars: 100000, maxCharsPerTts: 10000 },
   pro_yearly: { label: "Pro Yearly", monthlyChars: 250000, maxCharsPerTts: 10000 },
   lifetime: { label: "Lifetime", monthlyChars: 100000, maxCharsPerTts: 10000, limit: 500 },
-  business: { label: "Business", monthlyChars: 1000000, maxCharsPerTts: 10000 },
 };
 
 export const shareConfig = {
@@ -156,5 +155,4 @@ export const pricing = {
   yearly: { price: 9.99, stripePriceId: "price_yearly" },
   yearlyTotal: 119.88,
   lifetime: { price: 149, stripePriceId: "price_lifetime", limit: 500 },
-  business: { price: 49, stripePriceId: "price_business" },
 } as const;

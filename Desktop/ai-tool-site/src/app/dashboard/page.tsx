@@ -1,15 +1,13 @@
 "use client";
 
 import { useAuth, getPlanLabel } from "@/lib/auth-context";
-import { getTodayUsed, getTotalAvailable, getBonusCredits } from "@/lib/usage-tracker";
-import { ShareBonus } from "@/components/share-bonus";
+import { getTodayUsed, getTotalAvailable } from "@/lib/usage-tracker";
 import { Mic } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, subscription, isLoggedIn, isPro } = useAuth();
   const used = getTodayUsed();
   const total = getTotalAvailable();
-  const bonus = getBonusCredits();
 
   const planLabel = isPro && subscription ? getPlanLabel(subscription.plan) : "Free";
 
@@ -40,11 +38,6 @@ export default function DashboardPage() {
             {used} / {total}
           </p>
           <p className="mt-1 text-xs text-gray-500">TTS generations used today</p>
-          {bonus > 0 && (
-            <p className="mt-1 text-xs text-violet-600">
-              +{bonus} bonus credits from sharing
-            </p>
-          )}
           {isPro && (
             <p className="mt-2 text-xs text-accent">
               Unlimited voiceovers with {planLabel} plan
@@ -93,10 +86,6 @@ export default function DashboardPage() {
           <Mic className="h-4 w-4" />
           Go to Voiceover Studio
         </a>
-      </div>
-
-      <div className="mt-8">
-        <ShareBonus />
       </div>
     </div>
   );
