@@ -82,33 +82,29 @@ export interface Voice {
   tags?: string[];
   /** True for user-created cloned voices */
   cloned?: boolean;
-  /** True = standard Mandarin accent (CN marker shown in UI); false = dialect / non-standard accent */
-  standard?: boolean;
 }
 
 export const cosyvoiceVoices: Voice[] = [
   // 🌟 Standard Mandarin · adult male
-  { id: "longanmin", label: "Arthur", gender: "male", age: "male", style: "News Anchor", language: "zh", engine: "cosyvoice-v2", chinese: "News", standard: false, description: "Steady news anchor — great for documentaries and education", tags: ["news", "documentary", "education"] },
-  { id: "longgaoseng", label: "Victor", gender: "male", age: "male", style: "Narrator", language: "zh", engine: "cosyvoice-v2", chinese: "Narration · Standard Mandarin", standard: true, description: "Warm narrator — great for stories and audiobooks", tags: ["narration", "audiobook", "storytelling"] },
+  { id: "longgaoseng", label: "Victor", gender: "male", age: "male", style: "Narrator", language: "zh", engine: "cosyvoice-v2", chinese: "Narration", description: "Warm narrator — great for stories and audiobooks", tags: ["narration", "audiobook", "storytelling"] },
   // 🌟 Standard Mandarin · adult female
-  { id: "longyumi_v2", label: "Luna", gender: "female", age: "female", style: "Sweet", language: "zh", engine: "cosyvoice-v2", chinese: "Sweet", standard: true, description: "Sweet and lively — great for marketing and vlogs", tags: ["marketing", "vlog", "entertainment"] },
-  { id: "longxiaochun_v2", label: "Chloe", gender: "female", age: "female", style: "Lively", language: "zh", engine: "cosyvoice-v2", chinese: "Lively", standard: true, description: "Cheerful and upbeat — great for marketing and entertainment", tags: ["marketing", "entertainment", "vlog"] },
-  { id: "longxiaoxia_v2", label: "Zoe", gender: "female", age: "female", style: "Upbeat", language: "zh", engine: "cosyvoice-v2", chinese: "Upbeat", standard: true, description: "Bright and sunny — great for marketing and short videos", tags: ["marketing", "tiktok", "vlog"] },
+  { id: "longyumi_v2", label: "Luna", gender: "female", age: "female", style: "Sweet", language: "zh", engine: "cosyvoice-v2", chinese: "Sweet", description: "Sweet and lively — great for marketing and vlogs", tags: ["marketing", "vlog", "entertainment"] },
+  { id: "longxiaochun_v2", label: "Chloe", gender: "female", age: "female", style: "Lively", language: "zh", engine: "cosyvoice-v2", chinese: "Lively", description: "Cheerful and upbeat — great for marketing and entertainment", tags: ["marketing", "entertainment", "vlog"] },
+  { id: "longxiaoxia_v2", label: "Zoe", gender: "female", age: "female", style: "Upbeat", language: "zh", engine: "cosyvoice-v2", chinese: "Upbeat", description: "Bright and sunny — great for marketing and short videos", tags: ["marketing", "tiktok", "vlog"] },
   // 🇨🇳 Chinese voices · adult female
-  { id: "longanyue", label: "Emma", gender: "female", age: "female", style: "Gentle", language: "zh", engine: "cosyvoice-v2", chinese: "Gentle", standard: false, description: "Warm and elegant — great for emotional and lifestyle content", tags: ["emotional", "lifestyle", "meditation"] },
-  { id: "longshange", label: "Sophia", gender: "female", age: "female", style: "Professional", language: "zh", engine: "cosyvoice-v2", chinese: "Professional", standard: true, description: "Polished and capable — great for business and training", tags: ["business", "training", "corporate"] },
-  { id: "longdaiyu", label: "Lily", gender: "female", age: "female", style: "Soft", language: "zh", engine: "cosyvoice-v2", chinese: "Soft", standard: true, description: "Soft and delicate — great for bedtime and meditation", tags: ["meditation", "sleep", "wellness"] },
-  { id: "longanli", label: "Grace", gender: "female", age: "female", style: "Friendly", language: "zh", engine: "cosyvoice-v2", chinese: "Friendly", standard: true, description: "Warm and approachable — great for customer service and teaching", tags: ["customer-service", "education", "tutorial"] },
-  { id: "longanwen", label: "Clara", gender: "female", age: "female", style: "Literary", language: "zh", engine: "cosyvoice-v2", chinese: "Literary", standard: true, description: "Fresh and artistic — great for poetry and prose", tags: ["poetry", "literature", "culture"] },
-  { id: "longanyun", label: "Iris", gender: "female", age: "female", style: "Fresh", language: "zh", engine: "cosyvoice-v2", chinese: "Fresh", standard: true, description: "Natural and fresh — great for daily life and food", tags: ["daily", "food", "lifestyle"] },
+  { id: "longshange", label: "Sophia", gender: "female", age: "female", style: "Professional", language: "zh", engine: "cosyvoice-v2", chinese: "Professional", description: "Polished and capable — great for business and training", tags: ["business", "training", "corporate"] },
+  { id: "longdaiyu", label: "Lily", gender: "female", age: "female", style: "Soft", language: "zh", engine: "cosyvoice-v2", chinese: "Soft", description: "Soft and delicate — great for bedtime and meditation", tags: ["meditation", "sleep", "wellness"] },
+  { id: "longanli", label: "Grace", gender: "female", age: "female", style: "Friendly", language: "zh", engine: "cosyvoice-v2", chinese: "Friendly", description: "Warm and approachable — great for customer service and teaching", tags: ["customer-service", "education", "tutorial"] },
+  { id: "longanwen", label: "Clara", gender: "female", age: "female", style: "Literary", language: "zh", engine: "cosyvoice-v2", chinese: "Literary", description: "Fresh and artistic — great for poetry and prose", tags: ["poetry", "literature", "culture"] },
+  { id: "longanyun", label: "Iris", gender: "female", age: "female", style: "Fresh", language: "zh", engine: "cosyvoice-v2", chinese: "Fresh", description: "Natural and fresh — great for daily life and food", tags: ["daily", "food", "lifestyle"] },
   // 🇨🇳 Chinese voices · adult male
-  { id: "longanlang", label: "Henry", gender: "male", age: "male", style: "Sunny", language: "zh", engine: "cosyvoice-v2", chinese: "Sunny", standard: true, description: "Energetic and bright — great for sports and travel", tags: ["sports", "travel", "vlog"] },
-  { id: "longjiqi", label: "James", gender: "male", age: "male", style: "General", language: "zh", engine: "cosyvoice-v2", chinese: "General", standard: true, description: "Natural and versatile — works for almost any use case", tags: ["general", "all-purpose"] },
-  { id: "longyingxiao", label: "William", gender: "male", age: "male", style: "Authoritative", language: "zh", engine: "cosyvoice-v2", chinese: "Authoritative", standard: true, description: "Bold and commanding — great for ads and promos", tags: ["advertising", "promo", "brand"] },
-  { id: "longhouge", label: "George", gender: "male", age: "male", style: "Deep & Warm", language: "zh", engine: "cosyvoice-v2", chinese: "Deep & Warm", standard: true, description: "Deep and warm — great for film and documentaries", tags: ["documentary", "film", "cinematic"] },
-  { id: "longjixin", label: "Oliver", gender: "male", age: "male", style: "Energetic", language: "zh", engine: "cosyvoice-v2", chinese: "Energetic", standard: true, description: "Full of energy — great for gaming and variety shows", tags: ["gaming", "variety", "entertainment"] },
+  { id: "longanlang", label: "Henry", gender: "male", age: "male", style: "Sunny", language: "zh", engine: "cosyvoice-v2", chinese: "Sunny", description: "Energetic and bright — great for sports and travel", tags: ["sports", "travel", "vlog"] },
+  { id: "longjiqi", label: "James", gender: "male", age: "male", style: "General", language: "zh", engine: "cosyvoice-v2", chinese: "General", description: "Natural and versatile — works for almost any use case", tags: ["general", "all-purpose"] },
+  { id: "longyingxiao", label: "William", gender: "male", age: "male", style: "Authoritative", language: "zh", engine: "cosyvoice-v2", chinese: "Authoritative", description: "Bold and commanding — great for ads and promos", tags: ["advertising", "promo", "brand"] },
+  { id: "longhouge", label: "George", gender: "male", age: "male", style: "Deep & Warm", language: "zh", engine: "cosyvoice-v2", chinese: "Deep & Warm", description: "Deep and warm — great for film and documentaries", tags: ["documentary", "film", "cinematic"] },
+  { id: "longjixin", label: "Oliver", gender: "male", age: "male", style: "Energetic", language: "zh", engine: "cosyvoice-v2", chinese: "Energetic", description: "Full of energy — great for gaming and variety shows", tags: ["gaming", "variety", "entertainment"] },
   // ✨ Chinese voices · child
-  { id: "longanran", label: "An Ran", gender: "female", age: "child", style: "Gentle", language: "zh", engine: "cosyvoice-v2", chinese: "Cute", standard: true, description: "Soft and cute child voice — great for kids stories and education", tags: ["kids", "storytelling", "education"] },
+  { id: "longanran", label: "An Ran", gender: "female", age: "child", style: "Gentle", language: "zh", engine: "cosyvoice-v2", chinese: "Cute", description: "Soft and cute child voice — great for kids stories and education", tags: ["kids", "storytelling", "education"] },
 ];
 
 /** Voices grouped by age band for the left sidebar gallery */

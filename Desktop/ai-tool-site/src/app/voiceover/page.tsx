@@ -907,9 +907,6 @@ Output ONLY the polished script — no explanations, no markdown.`,
                                   selected ? "text-white" : "text-gray-800"
                                 }`}
                               >
-                                <span className="mr-1">
-                                  {v.standard !== false ? (LANG_META[v.language]?.flag ?? "🌐") : ""}
-                                </span>
                                 {v.label}
                                 {isClone && (
                                   <span
@@ -1170,12 +1167,6 @@ Output ONLY the polished script — no explanations, no markdown.`,
                 )}
               </h3>
               <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1">
-                {selectedVoice.standard !== false && (
-                  <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
-                    {LANG_META[selectedVoice.language]?.flag}{" "}
-                    {LANG_META[selectedVoice.language]?.label ?? "Mandarin"}
-                  </span>
-                )}
                 <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
                   {AGE_META[selectedVoice.age]?.emoji}{" "}
                   {AGE_META[selectedVoice.age]?.label ?? "Female"}
